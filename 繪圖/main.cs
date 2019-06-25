@@ -1952,7 +1952,7 @@ namespace 繪圖
                 }
                 else
                 {
-                    e.Graphics.DrawLine(pe_line, pt1, pt2);
+                    e.Graphics.DrawLine(pe_line, pt1.X * ZoomSize, pt1.Y * ZoomSize, pt2.X * ZoomSize, pt2.Y * ZoomSize);
                     PointF mid = new PointF((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2);
                     e.Graphics.DrawString(dist.ToString(), fo, Brushes.Black, mid.X * ZoomSize, mid.Y * ZoomSize);
                 }
@@ -2569,6 +2569,7 @@ namespace 繪圖
                     }
                     previous_point.Relative++;
                     ArcList.Add(a);
+                    Push_Undo_Data();
                     previous_point = null;
                     is_Drowing = false;
                 }
@@ -2586,6 +2587,7 @@ namespace 繪圖
                 {
                     GraphArc a = new GraphArc(previous_point, t);
                     ArcList.Add(a);
+                    Push_Undo_Data();
                     previous_point.Relative++;
                     t.Relative++;
                     previous_point = null;
@@ -3478,7 +3480,8 @@ namespace 繪圖
                 群組ToolStripMenuItem.Enabled = a > 1 || SelectedGroup.G.Count > 0 ? true : false;
                 組成群組ToolStripMenuItem.Enabled = a > 1 ? true : false;
                 取消群組ToolStripMenuItem.Enabled = GroupList.FindIndex(b => b == SelectedGroup) >= 0 ? true : false;
-                if (TestPath(SelectedGroup) != null)
+                bool tb;
+                if (TestPath(SelectedGroup, out tb) != null)
                 {
                     圖形ToolStripMenuItem.Enabled = true;
                     組為圖形ToolStripMenuItem.Enabled = true;
@@ -4953,8 +4956,9 @@ namespace 繪圖
                 PorpertyList[2].Visible = false;
             }
         }
-        private GraphPoint TestPath(GraphGroup g)
+        private GraphPoint TestPath(GraphGroup g, out bool haveArc)
         {
+            haveArc = false;
             List<GraphPoint> tempp = new List<GraphPoint>();
             foreach (var c in g.C)
             {
@@ -4970,6 +4974,14 @@ namespace 繪圖
                 if (!tempp.Exists(x => x == l.EndPoint))
                     tempp.Add(l.EndPoint);
             }
+            foreach(var a in g.A)
+            {
+                haveArc = true;
+                if (!tempp.Exists(x => x == a.StartPoint))
+                    tempp.Add(a.StartPoint);
+                if (!tempp.Exists(x => x == a.EndPoint))
+                    tempp.Add(a.EndPoint);
+            }
             foreach (var poi in tempp)
             {
                 int count = 0;
@@ -4977,6 +4989,8 @@ namespace 繪圖
                 count += l.Count;
                 var c = g.C.FindAll(x => x.path[0] == poi || x.path.Last() == poi);
                 count += c.Count;
+                var a = g.A.FindAll(x => x.StartPoint == poi || x.EndPoint == poi);
+                count += a.Count;
                 if (count != 2)
                 {
                     //MessageBox.Show("必須是一個封閉的圖形", "訊息", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -5513,89 +5527,6 @@ namespace 繪圖
                 MessageBox.Show("請將弧線解除群組後再進行轉換", "訊息", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            /*
-            float K = 0.5522847498F;
-            GraphArc arc = Right_Temp_Arc;
-            float arclenth = arc.angleLenth;
-            float a = arc.width / 2;
-            float b = arc.height / 2;
-            float x0, x1, y0, y1;
-            float temp;
-            PointF m0 = new PointF(), m1 = new PointF();
-            PointF p0, p1;
-            PointF center = arc.Middle();
-            GraphCurve c = new GraphCurve();
-            c.path.Add(new GraphPoint(arc.PointOnEllipseFromAngle(arc.startangle).X, arc.PointOnEllipseFromAngle(arc.startangle).Y));
-            c.disFirst.Add(new PointF());
-            while (arclenth > 90)
-            { 
-                p0 = arc.PointOnEllipseFromAngle(arc.startangle + arc.angleLenth - arclenth);
-                p0.X -= arc.Middle().X;
-                p0.Y -= arc.Middle().Y;
-                temp = -1 * p0.X * b * b / a / a / p0.Y;
-                m0 = p0.Y == 0 ? new PointF(0, 1) :
-                     p0.X == 0 ? new PointF(1, 0) :
-                     new PointF(1 / (float)Math.Sqrt(temp*temp + 1), temp / (float)Math.Sqrt(temp * temp + 1));
-                x0 = m0.X * a * Math.Abs((float)Math.Sin((arc.startangle + arc.angleLenth - arclenth) * Math.PI / 180)) * K;
-                y0 = m0.Y * b * Math.Abs((float)Math.Cos((arc.startangle + arc.angleLenth - arclenth) * Math.PI / 180)) * K;
-                x0 *= (arc.startangle + arc.angleLenth - arclenth) % 360 <= 180 && (arc.startangle + arc.angleLenth - arclenth) % 360 != 0 ? -1 : 1;
-                y0 *= (arc.startangle + arc.angleLenth - arclenth) % 360 <= 180 && (arc.startangle + arc.angleLenth - arclenth) % 360 != 0 ? -1 : 1;
-                c.disSecond.Add(new PointF(x0, y0));
-
-                arclenth -= 90;
-                p1 = arc.PointOnEllipseFromAngle(arc.startangle + arc.angleLenth - arclenth);
-                c.path.Add(new GraphPoint(p1.X, p1.Y));
-                p1.X -= arc.Middle().X;
-                p1.Y -= arc.Middle().Y;
-                temp = -1 * p1.X * b * b / a / a / p1.Y;
-                m1 = p1.Y == 0 ? new PointF(0, 1) :
-                     p1.X == 0 ? new PointF(1, 0) :
-                     new PointF(1 / (float)Math.Sqrt(temp * temp + 1), temp / (float)Math.Sqrt(temp * temp + 1));
-                x1 = m1.X * a * Math.Abs((float)Math.Sin((arc.startangle + arc.angleLenth - arclenth) * Math.PI / 360)) * K;
-                y1 = m1.Y * b * Math.Abs((float)Math.Cos((arc.startangle + arc.angleLenth - arclenth) * Math.PI / 360)) * K;
-                x1 *= (arc.startangle + arc.angleLenth - arclenth) % 360 <= 180 && (arc.startangle + arc.angleLenth - arclenth) % 360 != 0 ? -1 : 1;
-                y1 *= (arc.startangle + arc.angleLenth - arclenth) % 360 <= 180 && (arc.startangle + arc.angleLenth - arclenth) % 360 != 0 ? -1 : 1;
-                c.disFirst.Add(new PointF(-x1, -y1));
-            }
-            p0 = arc.PointOnEllipseFromAngle(arc.startangle + arc.angleLenth - arclenth);
-            p0.X -= arc.Middle().X;
-            p0.Y -= arc.Middle().Y;
-            temp = -1 * p0.X * b * b / a / a / p0.Y;
-            m0 = p0.Y == 0 ? new PointF(0, 1) :
-                 p0.X == 0 ? new PointF(1, 0) :
-                 new PointF(1 / (float)Math.Sqrt(temp * temp + 1), temp / (float)Math.Sqrt(temp * temp + 1));
-            x0 = m0.X * a * Math.Abs((float)Math.Sin((arc.startangle + arc.angleLenth - arclenth) * Math.PI / 180)) * K * arclenth / 90;
-            y0 = m0.Y * b * Math.Abs((float)Math.Cos((arc.startangle + arc.angleLenth - arclenth) * Math.PI / 180)) * K * arclenth / 90;
-            x0 *= (arc.startangle + arc.angleLenth - arclenth) % 360 <= 180 && (arc.startangle + arc.angleLenth - arclenth) % 360 != 0 ? -1 : 1;
-            y0 *= (arc.startangle + arc.angleLenth - arclenth) % 360 <= 180 && (arc.startangle + arc.angleLenth - arclenth) % 360 != 0 ? -1 : 1;
-            c.disSecond.Add(new PointF(x0, y0));
-            
-            p1 = arc.PointOnEllipseFromAngle(arc.startangle + arc.angleLenth);
-            c.path.Add(new GraphPoint(p1.X, p1.Y));
-            p1.X -= arc.Middle().X;
-            p1.Y -= arc.Middle().Y;
-            temp = -1 * p1.X * b * b / a / a / p1.Y;
-            m1 = p1.Y == 0 ? new PointF(0, 1) :
-                 p1.X == 0 ? new PointF(1, 0) :
-                 new PointF(1 / (float)Math.Sqrt(temp * temp + 1), temp / (float)Math.Sqrt(temp * temp + 1));
-            x1 = m1.X * a * Math.Abs((float)Math.Sin((arc.startangle + arc.angleLenth) * Math.PI / 180)) * K * arclenth / 90;
-            y1 = m1.Y * b * Math.Abs((float)Math.Cos((arc.startangle + arc.angleLenth) * Math.PI / 180)) * K * arclenth / 90;
-            x1 *= (arc.startangle + arc.angleLenth) % 360 <= 180 && (arc.startangle + arc.angleLenth) % 360 != 0 ? -1 : 1;
-            y1 *= (arc.startangle + arc.angleLenth) % 360 <= 180 && (arc.startangle + arc.angleLenth) % 360 != 0 ? -1 : 1;
-            c.disFirst.Add(new PointF(-x1, -y1));
-            c.disSecond.Add(new PointF());
-            foreach(var i in c.path)
-            {
-                c.type.Add(2);
-                PointsList.Add(i);
-                i.Relative++;
-            }
-            DeleteArc(arc);
-            CurveList.Add(c);
-            PointCombine();
-            Push_Undo_Data();
-            */
-
             GraphArc arc = Right_Temp_Arc;
             GraphCurve c = new GraphCurve();
             var parr = arc.to_cubic_bezier();
@@ -5626,13 +5557,24 @@ namespace 繪圖
         private void 組為圖形ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             GraphGroup path = new GraphGroup();
-            var p = TestPath(SelectedGroup);
+            bool tarc;
+            var p = TestPath(SelectedGroup, out tarc);
+            if (tarc)
+            {
+                if (MessageBox.Show("此動作會將所選圓弧轉為曲線", "訊息", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) != DialogResult.OK)
+                {
+                    return;
+                }
+            }
+            var aL = new List<GraphArc>();
+            var cL = new List<GraphCurve>();
             if (p == null)
                 return;
             do
             {
                 var l = SelectedGroup.L.FindAll(x => x.StartPoint == p || x.EndPoint == p);
                 var c = SelectedGroup.C.FindAll(x => x.path[0] == p || x.path.Last() == p);
+                var a = SelectedGroup.A.FindAll(x => x.StartPoint == p || x.EndPoint == p);
                 if (l.Count > 0)
                 {
                     if (l[0].StartPoint == p)
@@ -5657,12 +5599,56 @@ namespace 繪圖
                     path.C.Add(c[0]);
                     SelectedGroup.C.Remove(c[0]);
                 }
+                else if (a.Count > 0)
+                {
+                    var bez = a[0].to_cubic_bezier();
+                    var curve = new GraphCurve();
+                    if (a[0].StartPoint == p)
+                    {
+                        curve.path.Add(p);
+                        curve.disFirst.Add(new PointF(p.P.X - bez[1].X, p.P.Y - bez[1].Y));
+                        curve.disSecond.Add(new PointF(bez[1].X - p.P.X, bez[1].Y - p.P.Y));
+                        curve.type.Add(0);
+                        p = a[0].EndPoint;
+                        curve.path.Add(p);
+                        curve.disFirst.Add(new PointF(bez[2].X - p.P.X, bez[2].Y - p.P.Y));
+                        curve.disSecond.Add(new PointF(p.P.X - bez[2].X, p.P.Y - bez[2].Y));
+                        curve.type.Add(0);
+                    }
+                    else
+                    {
+                        curve.path.Add(p);
+                        p.Relative++;
+                        curve.disFirst.Add(new PointF(p.P.X - bez[2].X, p.P.Y - bez[2].Y));
+                        curve.disSecond.Add(new PointF(bez[2].X - p.P.X, bez[2].Y - p.P.Y));
+                        curve.type.Add(0);
+                        p = a[0].StartPoint;
+                        curve.path.Add(p);
+                        p.Relative++;
+                        curve.disFirst.Add(new PointF(bez[1].X - p.P.X, bez[1].Y - p.P.Y));
+                        curve.disSecond.Add(new PointF(p.P.X - bez[1].X, p.P.Y - bez[1].Y));
+                        curve.type.Add(0);
+                    }
+                    curve.isSeam = false;
+                    curve.Seam = 0;
+                    aL.Add(a[0]);
+                    cL.Add(curve);
+                    path.L.Add(null);
+                    path.C.Add(curve);
+                    SelectedGroup.A.Remove(a[0]);
+                }
                 else
                 {
                     MessageBox.Show("必須是一個封閉的圖形", "訊息", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
             } while (p != SelectedGroup.P[0]);
+            for(int i = 0; i < aL.Count; i++)
+            {
+                DeleteArc(aL[i]);
+                CurveList.Add(cL[i]);
+            }
+            SelectedGroup = null;
             for (int i = 0; i < path.L.Count; i++)
             {
                 GraphPoint thisS, thisE;
