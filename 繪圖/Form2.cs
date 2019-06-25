@@ -26,8 +26,10 @@ namespace 繪圖
         private void button1_Click(object sender, EventArgs e)
         {
             ans = textBox1.Text;
-            DialogResult = DialogResult.OK;
+            if (ans.Contains(" ") || ans.Contains("\\") || ans.Contains("%") || ans.Contains("$") || ans.Contains("#") || ans.Contains("!") || ans.Contains("@") || ans.Contains("^") || ans.Contains("&") || ans.Contains("*"))
+                MessageBox.Show("含有非法字元", "訊息", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else
+                DialogResult = DialogResult.OK;
         }
-
     }
 }
