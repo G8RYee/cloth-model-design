@@ -5300,6 +5300,17 @@ namespace 繪圖
                             }
                         }
                     }
+                    foreach(var a in ArcList)
+                    {
+                        if(a.StartPoint == t[1])
+                        {
+                            a.StartPoint = t[0];
+                        }
+                        else if (a.EndPoint == t[1])
+                        {
+                            a.EndPoint = t[0];
+                        }
+                    }
                     t[0].Relative += t[1].Relative;
                     PointsList.Remove(t[1]);
                 }
