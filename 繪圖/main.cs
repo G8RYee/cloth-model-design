@@ -1798,6 +1798,7 @@ namespace 繪圖
                                 IsCurveP.Add(true);
                             }
                         }
+                        IsCurveP[IsCurveP.Count - 1] = false;
                         check[path.C.FindIndex(x => x == c[0])] = true;
                     }
                 } while (p != path.P[0]);
@@ -1823,9 +1824,9 @@ namespace 繪圖
                 List<PointF> todrawl = extend_polygon(poly_vert, distList);
                 for (int i = 0; i < todrawl.Count; i++)
                 {
-                    if (IsCurveP[i] == false || (IsCurveP[i] == true && IsCurveP[(i + 1) % todrawl.Count] == false))
+                    if (IsCurveP[i] == false)
                     {
-                        e.Graphics.DrawLine(pe, todrawl[i], todrawl[(i + 1) % todrawl.Count]);
+                        e.Graphics.DrawLine(pe, todrawl[i].X * ZoomSize, todrawl[i].Y * ZoomSize, todrawl[(i + 1) % todrawl.Count].X * ZoomSize, todrawl[(i + 1) % todrawl.Count].Y * ZoomSize);
                     }
                     else
                     {
@@ -1834,7 +1835,7 @@ namespace 繪圖
                         bool tsfe = (path.C[cindex].path[0].P.X == poly_vert[i].X && path.C[cindex].path[0].P.Y == poly_vert[i].Y);
                         int cpathindex = tsfe ? 0 : path.C[cindex].path.Count - 1;
                         int pors = tsfe ? 1 : -1;
-                        while (IsCurveP[i % todrawl.Count] == true && IsCurveP[(i + 1) % todrawl.Count] == true)
+                        while (IsCurveP[i % todrawl.Count] == true)
                         {
                             if (pathcount == path.C[cindex].path.Count - 1) break;
                             PointF c1, c2;
