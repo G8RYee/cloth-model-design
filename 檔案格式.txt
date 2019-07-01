@@ -1,0 +1,54 @@
+tabpagedatalist计秖
+<TabPageData>
+	夹肈 糴 蔼
+	翴计秖
+	<GraphPoint>
+		翴.X 翴.Y
+	</GraphPoint>
+	絬计秖
+	<GraphLine>
+		start翴index end翴index isSeam Seam
+	</GraphLine>
+	Ρ絬计秖
+	<GraphCurve>
+		Path计秖 isSeam Seam
+		<Path>
+			翴index disFirst.X disFirst.Y disSecond.X disSecond.Y type
+		</Path>
+	</GraphCurve>
+	┓计秖
+	<GraphArc>
+		start翴index end翴index ControlP.X ControlP.Y
+	</GraphArc>
+	竤舱计秖
+	<GraphGroup>
+		<WriteGroup>
+			p计秖
+			p index
+			l计秖
+			l index
+			c计秖
+			c index
+			a计秖
+			a index
+			g 计秖
+			WriteGroup
+		</WriteGroup>
+	</GraphGroup>
+	ゅ计秖
+	<GraphText>
+		X Y ず甧(猔種フ)
+	</GraphText>
+	瓜计秖
+	<PathList>
+		<WriteGroup>
+			p计秖
+			p index
+			l计秖
+			l index
+			c计秖
+			c index
+			a计秖(莱0)
+			g 计秖(莱0)
+		</WriteGroup>
+	</PathList>

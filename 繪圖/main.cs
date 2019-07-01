@@ -864,12 +864,13 @@ namespace 繪圖
             data += dout.LineL.Count + "\n";
             foreach (var l in dout.LineL)
             {
-                data += dout.PointL.FindIndex(x => x == l.StartPoint) + " " + dout.PointL.FindIndex(x => x == l.EndPoint) + "\n";
+                data += dout.PointL.FindIndex(x => x == l.StartPoint) + " " + dout.PointL.FindIndex(x => x == l.EndPoint)
+                    + " " + (l.isSeam ? "T " : "F ") + l.Seam + "\n";
             }
             data += dout.CurveL.Count + "\n";
             foreach(var c in dout.CurveL)
             {
-                data += c.path.Count + "\n";
+                data += c.path.Count + " " + (c.isSeam ? "T " : "F ") + c.Seam + "\n";
                 for(int i = 0; i < c.path.Count; i++)
                 {
                     data += dout.PointL.FindIndex(x => x == c.path[i]) + " " + c.disFirst[i].X + " " + c.disFirst[i].Y + " " 
@@ -877,13 +878,11 @@ namespace 繪圖
                 }
             }
             data += dout.ArcL.Count + "\n";
-            /*
             foreach(var a in dout.ArcL)
             {
-                data += dout.PointL.FindIndex(x => x == a.startP) + " " + dout.PointL.FindIndex(x => x == a.endP) + " " 
-                    + a.P.X + " " + a.P.Y + " " + a.width + " " + a.height + " " + a.startangle + " " + a.angleLenth + "\n";
+                data += dout.PointL.FindIndex(x => x == a.StartPoint) + " " + dout.PointL.FindIndex(x => x == a.EndPoint) 
+                    +  " " + a.getControlPoint().X + " " + a.getControlPoint().Y + "\n";
             }
-            */
             data += dout.GroupL.Count + "\n";
             foreach(var g in dout.GroupL)
             {
@@ -893,6 +892,11 @@ namespace 繪圖
             foreach(var t in dout.TextL)
             {
                 data += t.P.X + " " + t.P.Y + " " + t.S + "\n";
+            }
+            data += dout.PathL.Count + "\n";
+            foreach (var pa in dout.PathL)
+            {
+                data += WriteGroup(dout, pa);
             }
             return data;
         }
@@ -930,16 +934,26 @@ namespace 繪圖
         {
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                TabpageDataList = new List<TabpageData>();
-
-                StreamReader sr = new StreamReader(openFileDialog1.FileName);
-                string s = sr.ReadLine();
-                int size;
-                int.TryParse(s, out size);
-                for(int i = 0; i < size; i++)
+                var TempTabpageData = new List<TabpageData>();
+                try
                 {
-                    TabpageDataList.Add(ReadTabData(sr));
+                    StreamReader sr = new StreamReader(openFileDialog1.FileName);
+                    string s = sr.ReadLine();
+                    int size;
+                    int.TryParse(s, out size);
+                    for (int i = 0; i < size; i++)
+                    {
+                        TempTabpageData.Add(ReadTabData(sr));
+                        if (TempTabpageData[i] == null)
+                            return;
+                    }
                 }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "讀檔錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                TabpageDataList = TempTabpageData;
                 TabpagesList = new List<TabPage>();
                 tabControl1.TabPages.Clear();
                 foreach(var td in TabpageDataList)
@@ -953,8 +967,11 @@ namespace 繪圖
                     CurveList = td.CurveL;
                     ArcList = td.ArcL;
                     GroupList = td.GroupL;
+                    PathList = td.PathL;
+                    TextList = td.TextL;
                     Undo_Data = td.Undo;
-                    Push_Undo_Data();
+                    int tdindex = TabpageDataList.FindIndex(x => x == td);
+                    Push_Undo_Data(tdindex);
                 }
                 TabpagesList.Add(new TabPage("+"));
                 tabControl1.TabPages.Add(TabpagesList[TabpagesList.Count - 1]);
@@ -972,8 +989,9 @@ namespace 繪圖
                 CurveList = TabpageDataList[0].CurveL;
                 ArcList = TabpageDataList[0].ArcL;
                 GroupList = TabpageDataList[0].GroupL;
+                PathList = TabpageDataList[0].PathL;
+                TextList = TabpageDataList[0].TextL;
                 Undo_Data = TabpageDataList[0].Undo;
-
 
                 TabpagesList[0].Controls.Add(pictureBox1);
                 TabpagesList[0].Controls.Add(pictureBox2);
@@ -986,130 +1004,145 @@ namespace 繪圖
         }
         public TabpageData ReadTabData(StreamReader sr)
         {
-            TabpageData td = new TabpageData();
-            string s = sr.ReadLine();
-            string[] sarr = s.Split(' ');
-            td.TabpageName = sarr[0];
-            int width; int.TryParse(sarr[1], out width); td.width = width;
-            int height; int.TryParse(sarr[2], out height); td.height = height;
-
-            s = sr.ReadLine();
-            int pnum; int.TryParse(s, out pnum);
-            td.PointL = new List<GraphPoint>();
-            for(int i = 0; i < pnum; i++)
+            try
             {
-                s = sr.ReadLine();
-                sarr = s.Split(' ');
-                float x; float.TryParse(sarr[0], out x);
-                float y; float.TryParse(sarr[1], out y);
-                GraphPoint p = new GraphPoint(x, y);
-                td.PointL.Add(p);
-            }
+                TabpageData td = new TabpageData();
+                string s = sr.ReadLine();
+                string[] sarr = s.Split(' ');
+                td.TabpageName = sarr[0];
+                int width; int.TryParse(sarr[1], out width); td.width = width;
+                int height; int.TryParse(sarr[2], out height); td.height = height;
 
-            s = sr.ReadLine();
-            int lnum; int.TryParse(s, out lnum);
-            td.LineL = new List<GraphLine>();
-            for(int i = 0; i < lnum; i++)
-            {
                 s = sr.ReadLine();
-                sarr = s.Split(' ');
-                int start; int.TryParse(sarr[0],out start);
-                int end; int.TryParse(sarr[1], out end);
-                GraphLine l = new GraphLine(td.PointL[start], td.PointL[end]);
-                td.PointL[start].Relative++;
-                td.PointL[end].Relative++;
-                td.LineL.Add(l);
-            }
-
-            s = sr.ReadLine();
-            int cnum; int.TryParse(s, out cnum);
-            td.CurveL = new List<GraphCurve>();
-            for(int i = 0; i < cnum; i++)
-            {
-                s = sr.ReadLine();
-                int pathnum; int.TryParse(s, out pathnum);
-                GraphCurve c = new GraphCurve();
-                for(int j = 0; j < pathnum; j++)
+                int pnum; int.TryParse(s, out pnum);
+                td.PointL = new List<GraphPoint>();
+                for (int i = 0; i < pnum; i++)
                 {
                     s = sr.ReadLine();
                     sarr = s.Split(' ');
-                    int pid; int.TryParse(sarr[0], out pid);
-                    c.path.Add(td.PointL[pid]);
-                    td.PointL[pid].Relative++;
-
-                    float fx; float.TryParse(sarr[1], out fx);
-                    float fy; float.TryParse(sarr[2], out fy);
-                    c.disFirst.Add(new PointF(fx, fy));
-
-                    float sx; float.TryParse(sarr[3], out sx);
-                    float sy; float.TryParse(sarr[4], out sy);
-                    c.disSecond.Add(new PointF(sx, sy));
-
-                    int type; int.TryParse(sarr[5], out type);
-                    c.type.Add(type);
+                    float x; float.TryParse(sarr[0], out x);
+                    float y; float.TryParse(sarr[1], out y);
+                    GraphPoint p = new GraphPoint(x, y);
+                    td.PointL.Add(p);
                 }
-                td.CurveL.Add(c);
-            }
 
-            s = sr.ReadLine();
-            int anum; int.TryParse(s, out anum);
-            td.ArcL = new List<GraphArc>();
-            /*
-            for(int i = 0; i < anum; i++)
-            {
-                GraphArc a = new GraphArc();
                 s = sr.ReadLine();
-                sarr = s.Split(' ');
+                int lnum; int.TryParse(s, out lnum);
+                td.LineL = new List<GraphLine>();
+                for (int i = 0; i < lnum; i++)
+                {
+                    s = sr.ReadLine();
+                    sarr = s.Split(' ');
+                    int start; int.TryParse(sarr[0], out start);
+                    int end; int.TryParse(sarr[1], out end);
+                    bool isSeam = sarr[2] == "T";
+                    float Seam;float.TryParse(sarr[3], out Seam);
+                    GraphLine l = new GraphLine(td.PointL[start], td.PointL[end]);
+                    l.isSeam = isSeam;
+                    l.Seam = Seam;
+                    td.PointL[start].Relative++;
+                    td.PointL[end].Relative++;
+                    td.LineL.Add(l);
+                }
 
-                int astart; int.TryParse(sarr[0], out astart);
-                a.startP = td.PointL[astart];
-                td.PointL[astart].Arc = a;
-                td.PointL[astart].Arc_Start = true;
-                td.PointL[astart].Relative++;
-
-                int aend; int.TryParse(sarr[1], out aend);
-                a.endP = td.PointL[aend];
-                td.PointL[aend].Arc = a;
-                td.PointL[aend].Arc_Start = false;
-                td.PointL[aend].Relative++;
-
-                float x; float.TryParse(sarr[2], out x);
-                float y; float.TryParse(sarr[3], out y);
-                a.P = new PointF(x, y);
-
-                int awidth; int.TryParse(sarr[4], out awidth);
-                a.width = awidth;
-                int aheight; int.TryParse(sarr[5], out aheight);
-                a.height = aheight;
-
-                float startangle; float.TryParse(sarr[6], out startangle);
-                a.startangle = startangle;
-                float anglelenth; float.TryParse(sarr[7], out anglelenth);
-                a.angleLenth = anglelenth;
-
-                td.ArcL.Add(a);
-            }
-            */
-            s = sr.ReadLine();
-            int gnum; int.TryParse(s, out gnum);
-            td.GroupL = new List<GraphGroup>();
-            for(int i = 0; i < gnum; i++)
-            {
-                td.GroupL.Add(ReadGroup(sr, td));
-            }
-            s = sr.ReadLine();
-            int tnum; int.TryParse(s, out tnum);
-            td.TextL = new List<GraphText>();
-            for(int i = 0; i < tnum; i++)
-            {
                 s = sr.ReadLine();
-                sarr = s.Split(' ');
-                float x; float.TryParse(sarr[0], out x);
-                float y; float.TryParse(sarr[1], out y);
-                td.TextL.Add(new GraphText { P = new PointF(x, y), S = sarr[2] });
+                int cnum; int.TryParse(s, out cnum);
+                td.CurveL = new List<GraphCurve>();
+                for (int i = 0; i < cnum; i++)
+                {
+                    s = sr.ReadLine();
+                    sarr = s.Split(' ');
+                    int pathnum; int.TryParse(sarr[0], out pathnum);
+                    bool isSeam = sarr[1] == "T";
+                    float Seam; float.TryParse(sarr[2], out Seam);
+                    GraphCurve c = new GraphCurve();
+                    for (int j = 0; j < pathnum; j++)
+                    {
+                        s = sr.ReadLine();
+                        sarr = s.Split(' ');
+                        int pid; int.TryParse(sarr[0], out pid);
+                        c.path.Add(td.PointL[pid]);
+                        td.PointL[pid].Relative++;
+
+                        float fx; float.TryParse(sarr[1], out fx);
+                        float fy; float.TryParse(sarr[2], out fy);
+                        c.disFirst.Add(new PointF(fx, fy));
+
+                        float sx; float.TryParse(sarr[3], out sx);
+                        float sy; float.TryParse(sarr[4], out sy);
+                        c.disSecond.Add(new PointF(sx, sy));
+
+                        int type; int.TryParse(sarr[5], out type);
+                        c.type.Add(type);
+                    }
+                    c.isSeam = isSeam;
+                    c.Seam = Seam;
+                    td.CurveL.Add(c);
+                }
+
+                s = sr.ReadLine();
+                int anum; int.TryParse(s, out anum);
+                td.ArcL = new List<GraphArc>();
+                for(int i = 0; i < anum; i++)
+                {
+                    s = sr.ReadLine();
+                    sarr = s.Split(' ');
+
+                    int astart; int.TryParse(sarr[0], out astart);
+                    GraphPoint st = td.PointL[astart];
+                    td.PointL[astart].Relative++;
+
+                    int aend; int.TryParse(sarr[1], out aend);
+                    GraphPoint en = td.PointL[aend];
+                    td.PointL[aend].Relative++;
+
+                    float x; float.TryParse(sarr[2], out x);
+                    float y; float.TryParse(sarr[3], out y);
+                    PointF cp = new PointF(x, y);
+
+                    GraphArc a = new GraphArc(st, en, cp);
+
+                    td.ArcL.Add(a);
+                }
+
+                s = sr.ReadLine();
+                int gnum; int.TryParse(s, out gnum);
+                td.GroupL = new List<GraphGroup>();
+                for (int i = 0; i < gnum; i++)
+                {
+                    td.GroupL.Add(ReadGroup(sr, td));
+                }
+
+                s = sr.ReadLine();
+                int tnum; int.TryParse(s, out tnum);
+                td.TextL = new List<GraphText>();
+                for (int i = 0; i < tnum; i++)
+                {
+                    s = sr.ReadLine();
+                    sarr = s.Split(' ');
+                    float x; float.TryParse(sarr[0], out x);
+                    float y; float.TryParse(sarr[1], out y);
+                    string temps = "";
+                    for (int j = 2; j < sarr.Count(); j++)
+                        temps += sarr[j];
+                    td.TextL.Add(new GraphText { P = new PointF(x, y), S = temps });
+                }
+
+                s = sr.ReadLine();
+                int panum; int.TryParse(s, out panum);
+                td.PathL = new List<GraphGroup>();
+                for (int i = 0; i < panum; i++)
+                {
+                    td.PathL.Add(ReadGroup(sr, td));
+                }
+
+                return td;
             }
-            
-            return td;
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "讀檔錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
         }
         private GraphGroup ReadGroup(StreamReader sr, TabpageData td)
         {
@@ -1129,7 +1162,10 @@ namespace 繪圖
             {
                 s = sr.ReadLine();
                 int id; int.TryParse(s, out id);
-                g.L.Add(td.LineL[id]);
+                if (id == -1)
+                    g.L.Add(null);
+                else
+                    g.L.Add(td.LineL[id]);
             }
 
             s = sr.ReadLine();
@@ -1138,7 +1174,10 @@ namespace 繪圖
             {
                 s = sr.ReadLine();
                 int id; int.TryParse(s, out id);
-                g.C.Add(td.CurveL[id]);
+                if (id == -1)
+                    g.C.Add(null);
+                else
+                    g.C.Add(td.CurveL[id]);
             }
 
             s = sr.ReadLine();
@@ -1152,7 +1191,7 @@ namespace 繪圖
 
             s = sr.ReadLine();
             int gnum; int.TryParse(s, out gnum);
-            for (int i = 0; i < pnum; i++)
+            for (int i = 0; i < gnum; i++)
             {
                 g.G.Add(ReadGroup(sr, td));
             }
@@ -4666,7 +4705,7 @@ namespace 繪圖
         #endregion
 
         private List<TabpageData> Undo_Data = new List<TabpageData>();
-        private void Push_Undo_Data()
+        private void Push_Undo_Data(int tdindex = -1)
         {
             TabpageData t = new TabpageData();
             foreach(var p in PointsList)
@@ -4718,20 +4757,30 @@ namespace 繪圖
             }
             foreach (var g in GroupList)
             {
-                t.GroupL.Add(Group_Copy(g, t, TabpageDataList[tabControl1.SelectedIndex]));
+                if (tdindex == -1)
+                    t.GroupL.Add(Group_Copy(g, t, TabpageDataList[tabControl1.SelectedIndex]));
+                else
+                    t.GroupL.Add(Group_Copy(g, t, TabpageDataList[tdindex]));
             }
             foreach(var path in PathList)
             {
-                t.PathL.Add(Group_Copy(path, t, TabpageDataList[tabControl1.SelectedIndex]));
+                if (tdindex == -1)
+                    t.PathL.Add(Group_Copy(path, t, TabpageDataList[tabControl1.SelectedIndex]));
+                else
+                    t.PathL.Add(Group_Copy(path, t, TabpageDataList[tdindex]));
             }
             t.width = (int)(pictureBox1.Width/ZoomSize);
             t.height = (int)(pictureBox1.Height/ZoomSize);
-            for(int i = Undo_Data.Count - 1; i > TabpageDataList[tabControl1.SelectedIndex].Undo_index; i--)
-            {
-                Undo_Data.RemoveAt(i);
-            }
+            if (tdindex == -1)
+                for (int i = Undo_Data.Count - 1; i > TabpageDataList[tabControl1.SelectedIndex].Undo_index; i--)
+                {
+                    Undo_Data.RemoveAt(i);
+                }
             Undo_Data.Add(t);
-            TabpageDataList[tabControl1.SelectedIndex].Undo_index++;
+            if (tdindex == -1)
+                TabpageDataList[tabControl1.SelectedIndex].Undo_index++;
+            else
+                TabpageDataList[tdindex].Undo_index++;
             RefreshUndoCheck();
         }
         private GraphGroup Group_Copy(GraphGroup PreG, TabpageData PreT, TabpageData Ref)
