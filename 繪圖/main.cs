@@ -947,6 +947,7 @@ namespace 繪圖
                         if (TempTabpageData[i] == null)
                             return;
                     }
+                    sr.Close();
                 }
                 catch(Exception ex)
                 {
@@ -5667,10 +5668,13 @@ namespace 繪圖
                     if (a[0].StartPoint == p)
                     {
                         curve.path.Add(p);
+                        p.Relative++;
                         curve.disFirst.Add(new PointF(p.P.X - bez[1].X, p.P.Y - bez[1].Y));
                         curve.disSecond.Add(new PointF(bez[1].X - p.P.X, bez[1].Y - p.P.Y));
                         curve.type.Add(0);
+
                         p = a[0].EndPoint;
+                        p.Relative++;
                         curve.path.Add(p);
                         curve.disFirst.Add(new PointF(bez[2].X - p.P.X, bez[2].Y - p.P.Y));
                         curve.disSecond.Add(new PointF(p.P.X - bez[2].X, p.P.Y - bez[2].Y));
