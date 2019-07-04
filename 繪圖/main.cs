@@ -1972,9 +1972,21 @@ namespace 繪圖
                       B2 = l2.StartPoint.P.X - l2.EndPoint.P.X,
                       C2 = l2.EndPoint.P.X * l2.StartPoint.P.Y - l2.StartPoint.P.X * l2.EndPoint.P.Y;
                 float m = A1 * B2 - A2 * B1;
-                float x = (C2 * B1 - C1 * B2) / m;
-                float y = (C1 * A2 - C2 * A1) / m;
-                newList.Add(new PointF(x, y));
+                if (m == 0)
+                {
+                    PointF l1s = l1.StartPoint.P, l1e = l1.EndPoint.P, l2s = l2.StartPoint.P, l2e = l2.EndPoint.P;
+                    if (l1s == l2s) newList.Add(l1s);
+                    else if (l1s == l2e) newList.Add(l1s);
+                    else if (l1e == l2s) newList.Add(l1e);
+                    else  newList.Add(l1e);
+                }
+                else
+                {
+                    float x = (C2 * B1 - C1 * B2) / m;
+                    float y = (C1 * A2 - C2 * A1) / m;
+                    newList.Add(new PointF(x, y));
+                }
+                
             }
             return newList;
 
