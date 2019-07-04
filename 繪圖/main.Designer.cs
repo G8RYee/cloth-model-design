@@ -95,9 +95,9 @@
             this.解除圖形ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.直線等分ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.選取整個圖形ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.移除距離標示ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.移除距離標示ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -627,20 +627,20 @@
             this.選取整個圖形ToolStripMenuItem,
             this.移除距離標示ToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 224);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(147, 202);
             this.contextMenuStrip1.Tag = "畫線用";
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(146, 22);
             this.toolStripMenuItem2.Text = "刪除";
             this.toolStripMenuItem2.Click += new System.EventHandler(this.toolStripMenuItem2_Click);
             // 
             // 新增節點ToolStripMenuItem
             // 
             this.新增節點ToolStripMenuItem.Name = "新增節點ToolStripMenuItem";
-            this.新增節點ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.新增節點ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.新增節點ToolStripMenuItem.Text = "新增節點";
             this.新增節點ToolStripMenuItem.Click += new System.EventHandler(this.新增節點ToolStripMenuItem_Click);
             // 
@@ -651,7 +651,7 @@
             this.拉直ToolStripMenuItem,
             this.無ToolStripMenuItem});
             this.曲線樣式ToolStripMenuItem.Name = "曲線樣式ToolStripMenuItem";
-            this.曲線樣式ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.曲線樣式ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.曲線樣式ToolStripMenuItem.Text = "曲線樣式";
             // 
             // 平滑ToolStripMenuItem
@@ -681,7 +681,7 @@
             this.組成群組ToolStripMenuItem,
             this.取消群組ToolStripMenuItem});
             this.群組ToolStripMenuItem.Name = "群組ToolStripMenuItem";
-            this.群組ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.群組ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.群組ToolStripMenuItem.Text = "群組";
             // 
             // 組成群組ToolStripMenuItem
@@ -701,7 +701,7 @@
             // 轉換為曲線ToolStripMenuItem
             // 
             this.轉換為曲線ToolStripMenuItem.Name = "轉換為曲線ToolStripMenuItem";
-            this.轉換為曲線ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.轉換為曲線ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.轉換為曲線ToolStripMenuItem.Text = "轉換為曲線";
             this.轉換為曲線ToolStripMenuItem.Click += new System.EventHandler(this.轉換為曲線ToolStripMenuItem_Click);
             // 
@@ -711,7 +711,7 @@
             this.組為圖形ToolStripMenuItem,
             this.解除圖形ToolStripMenuItem});
             this.圖形ToolStripMenuItem.Name = "圖形ToolStripMenuItem";
-            this.圖形ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.圖形ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.圖形ToolStripMenuItem.Text = "圖形";
             // 
             // 組為圖形ToolStripMenuItem
@@ -731,16 +731,23 @@
             // 直線等分ToolStripMenuItem
             // 
             this.直線等分ToolStripMenuItem.Name = "直線等分ToolStripMenuItem";
-            this.直線等分ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.直線等分ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.直線等分ToolStripMenuItem.Text = "直線等分";
             this.直線等分ToolStripMenuItem.Click += new System.EventHandler(this.直線等分ToolStripMenuItem_Click);
             // 
             // 選取整個圖形ToolStripMenuItem
             // 
             this.選取整個圖形ToolStripMenuItem.Name = "選取整個圖形ToolStripMenuItem";
-            this.選取整個圖形ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.選取整個圖形ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.選取整個圖形ToolStripMenuItem.Text = "選取整個圖形";
             this.選取整個圖形ToolStripMenuItem.Click += new System.EventHandler(this.選取整個圖形ToolStripMenuItem_Click);
+            // 
+            // 移除距離標示ToolStripMenuItem
+            // 
+            this.移除距離標示ToolStripMenuItem.Name = "移除距離標示ToolStripMenuItem";
+            this.移除距離標示ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.移除距離標示ToolStripMenuItem.Text = "移除距離標示";
+            this.移除距離標示ToolStripMenuItem.Click += new System.EventHandler(this.移除距離標示ToolStripMenuItem_Click);
             // 
             // pictureBox2
             // 
@@ -762,13 +769,6 @@
             this.textBox1.Visible = false;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             this.textBox1.Leave += new System.EventHandler(this.textBox1_Leave);
-            // 
-            // 移除距離標示ToolStripMenuItem
-            // 
-            this.移除距離標示ToolStripMenuItem.Name = "移除距離標示ToolStripMenuItem";
-            this.移除距離標示ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.移除距離標示ToolStripMenuItem.Text = "移除距離標示";
-            this.移除距離標示ToolStripMenuItem.Click += new System.EventHandler(this.移除距離標示ToolStripMenuItem_Click);
             // 
             // main
             // 

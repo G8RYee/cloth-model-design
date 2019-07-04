@@ -789,6 +789,7 @@ namespace 繪圖
             PorpertyList[1].Visible = false;
             PorpertyList[2].Visible = false;
             toolStripTextBox1_Leave(new object(), new EventArgs());
+
         }
         private void tabControl1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -1871,7 +1872,8 @@ namespace 繪圖
                     else
                     {
                         int pathcount = 0;
-                        int cindex = path.C.FindIndex(x => x != null ? (x.path.Exists(y => y.P.X == poly_vert[(i + 1) % todrawl.Count].X && y.P.Y == poly_vert[(i + 1) % todrawl.Count].Y)) : false);
+                        int cindex = path.C.FindIndex(x => x != null ? (x.path.Exists(y => y.P.X == poly_vert[(i + 1) % todrawl.Count].X && y.P.Y == poly_vert[(i + 1) % todrawl.Count].Y))
+                                                                    && (x.path.Exists(y => y.P.X == poly_vert[(i) % todrawl.Count].X && y.P.Y == poly_vert[(i) % todrawl.Count].Y)) : false);
                         bool tsfe = (path.C[cindex].path[0].P.X == poly_vert[i].X && path.C[cindex].path[0].P.Y == poly_vert[i].Y);
                         int cpathindex = tsfe ? 0 : path.C[cindex].path.Count - 1;
                         int pors = tsfe ? 1 : -1;
@@ -3379,7 +3381,7 @@ namespace 繪圖
                 PathList.Add(newpath2);
                 M7_State = 0;
                 M7_Temp_Clean();
-               PointsList.RemoveAll(x => x.Relative <= 0 && x.MarkL == null);
+                PointsList.RemoveAll(x => x.Relative <= 0 && x.MarkL == null);
                 Push_Undo_Data();
             }
         }
@@ -5674,8 +5676,8 @@ namespace 繪圖
                         curve.type.Add(0);
 
                         p = a[0].EndPoint;
-                        p.Relative++;
                         curve.path.Add(p);
+                        p.Relative++;
                         curve.disFirst.Add(new PointF(bez[2].X - p.P.X, bez[2].Y - p.P.Y));
                         curve.disSecond.Add(new PointF(p.P.X - bez[2].X, p.P.Y - bez[2].Y));
                         curve.type.Add(0);
@@ -6067,7 +6069,5 @@ namespace 繪圖
                 }
             }
         }
-
-
     }
 }
