@@ -1862,7 +1862,20 @@ namespace 繪圖
                     else
                         break;
                 } while (true);
-                List<PointF> todrawl = extend_polygon(poly_vert, distList);
+                List<PointF> forextend = new List<PointF>();
+                forextend.Add(poly_vert[0]);
+                float pre_m = (poly_vert[1].X - poly_vert[0].X) / (poly_vert[1].Y - poly_vert[0].X);
+                for(int i = 1; i < poly_vert.Count(); i++)
+                {
+                    int next = (i + 1) % poly_vert.Count();
+                    float now_m = (poly_vert[next].X - poly_vert[i].X) / (poly_vert[next].Y - poly_vert[i].X);
+                    if (now_m == pre_m)
+                        forextend.Add(new PointF(poly_vert[i].X + 1, poly_vert[i].Y + 1));
+                    else
+                        forextend.Add(poly_vert[i]);
+                    pre_m = now_m;
+                }
+                List<PointF> todrawl = extend_polygon(forextend, distList);
                 for (int i = 0; i < todrawl.Count; i++)
                 {
                     if (IsCurveP[i] == false)
@@ -1947,6 +1960,11 @@ namespace 繪圖
                 startindex = i == 0 ? count - 1 : i - 1;
                 endindex = i;
                 float sina = (nDpList[startindex].X * nDpList[endindex].Y - nDpList[startindex].Y * nDpList[endindex].X) * area;
+                if (sina == 0)
+                {
+                    nDpList[endindex] = new PointF(nDpList[endindex].X + 0.001F, nDpList[endindex].Y + 0.001F);
+                    sina = (nDpList[startindex].X * nDpList[endindex].Y - nDpList[startindex].Y * nDpList[endindex].X) * area;
+                }
                 lenth = distList[i] / sina;
                 p2d = new PointF(nDpList[endindex].X - nDpList[startindex].X, nDpList[endindex].Y - nDpList[startindex].Y);
                 p2 = new PointF(pList[i].X + p2d.X * lenth, pList[i].Y + p2d.Y * lenth);
@@ -1954,6 +1972,11 @@ namespace 繪圖
                 startindex = (startindex - 1 + count) % count;
                 endindex = (endindex - 1 + count) % count;
                 sina = (nDpList[startindex].X * nDpList[endindex].Y - nDpList[startindex].Y * nDpList[endindex].X) * area;
+                if (sina == 0)
+                {
+                    nDpList[endindex] = new PointF(nDpList[endindex].X + 0.001F, nDpList[endindex].Y + 0.001F);
+                    sina = (nDpList[startindex].X * nDpList[endindex].Y - nDpList[startindex].Y * nDpList[endindex].X) * area;
+                }
                 lenth = distList[i] / sina;
                 p3d = new PointF(nDpList[endindex].X - nDpList[startindex].X, nDpList[endindex].Y - nDpList[startindex].Y);
                 p3 = new PointF(pList[i].X + p3d.X * lenth, pList[i].Y + p3d.Y * lenth);
@@ -2009,7 +2032,11 @@ namespace 繪圖
                 {
                     e.Graphics.DrawLine(pe_line, pt1.X * ZoomSize, pt1.Y * ZoomSize, pt2.X * ZoomSize, pt2.Y * ZoomSize);
                     PointF mid = new PointF((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2);
-                    e.Graphics.DrawString(dist.ToString(), fo, Brushes.Black, mid.X * ZoomSize, mid.Y * ZoomSize);
+                    if (LenthUnit == 0)
+                        dist /= 10;
+                    else
+                        dist /= 25.4F;
+                    e.Graphics.DrawString(dist.ToString("F") + (LenthUnit == 0 ? " cm" : " inch"), fo, Brushes.Black, mid.X * ZoomSize, mid.Y * ZoomSize);
                 }
             }
             foreach (var pd in pdl)
@@ -4636,7 +4663,7 @@ namespace 繪圖
             }
             Refresh();
         }
-        private void toolStripTextBox1_Leave(object sender, EventArgs e)
+        private void toolStripTextBox1_Leave(object sender, EventArgs e)//網格大小
         {
             double t;
             if (double.TryParse(toolStripTextBox1.Text, out t))
@@ -4656,7 +4683,7 @@ namespace 繪圖
                 toolStripTextBox1_Leave(sender, e);
             }
         }
-        private void toolStripTextBox2_Leave(object sender, EventArgs e)
+        private void toolStripTextBox2_Leave(object sender, EventArgs e)//細緻度
         {
             int t;
             if(int.TryParse(toolStripTextBox2.Text, out t) && t > 0)
@@ -4751,6 +4778,8 @@ namespace 繪圖
                     gc.disSecond.Add(new PointF(c.disSecond[i].X, c.disSecond[i].Y));
                     gc.type.Add(c.type[i]);
                 }
+                gc.isSeam = c.isSeam;
+                gc.Seam = c.Seam;
                 t.CurveL.Add(gc);
             }
             foreach(var a in ArcList)
@@ -4941,7 +4970,7 @@ namespace 繪圖
                         PorpertyList[2].Visible = false;
                         double x = (l.EndPoint.P.X - l.StartPoint.P.X) * (l.EndPoint.P.X - l.StartPoint.P.X);
                         double y = (l.EndPoint.P.Y - l.StartPoint.P.Y) * (l.EndPoint.P.Y - l.StartPoint.P.Y);
-                        LineLengthLable.Text = "長度:" + Math.Sqrt(x + y).ToString("#0.00");
+                        LineLengthLable.Text = "長度:" + (Math.Sqrt(x + y) / (LenthUnit == 0 ? 10 : 25.4)).ToString("#0.00") + (LenthUnit == 0 ? " cm" : " inch");
                         if (!PathList.Exists(a => a.L.Exists(b => b == l)))
                         {
                             LineSeamCheck.Enabled = false;
@@ -5278,6 +5307,7 @@ namespace 繪圖
                 if (p.MarkL == toDeleteL)
                     p.MarkL = null;
             }
+            PathList.RemoveAll(x => x.L.Exists(y => y == toDeleteL));
             PointsList.RemoveAll(x => x.Relative <= 0 && x.MarkL == null);
         }
         private void DeleteCurveP(GraphCurve c, GraphPoint p)
@@ -5307,7 +5337,8 @@ namespace 繪圖
                 c.path[i].Relative--;
             }
             CurveList.Remove(c);
-           PointsList.RemoveAll(x => x.Relative <= 0 && x.MarkL == null);
+            PathList.RemoveAll(x => x.C.Exists(y => y == c));
+            PointsList.RemoveAll(x => x.Relative <= 0 && x.MarkL == null);
         }
         private void DeleteArc(GraphArc a)
         {
@@ -5322,10 +5353,12 @@ namespace 繪圖
         {
             foreach(var l in g.L)
             {
+                PathList.RemoveAll(x => x.L.Exists(y => y == l));
                 DeleteLine(l);
             }
             foreach(var c in g.C)
             {
+                PathList.RemoveAll(x => x.C.Exists(y => y == c));
                 DeleteHoleCurve(c);
             }
             foreach(var a in g.A)
@@ -6006,6 +6039,38 @@ namespace 繪圖
                 else if (float.TryParse(LineSeamText.Text, out temp))
                 {
                     SelectedGroup.L[0].Seam = temp;
+                    var pa = PathList.Find(x => x.L.Exists(y => y == SelectedGroup.L[0]));
+                    if(pa != null)
+                    {
+                        int index = pa.L.FindIndex(x => x == SelectedGroup.L[0]);
+                        float pre_m = (pa.L[index].EndPoint.P.X-pa.L[index].StartPoint.P.X) / (pa.L[index].EndPoint.P.Y - pa.L[index].StartPoint.P.Y);
+                        for(int i = 1; i < pa.L.Count(); i++)
+                        {
+                            int nowi = (i + index) % pa.L.Count();
+                            if (pa.L[nowi] == null) break;
+                            float now_m = (pa.L[nowi].EndPoint.P.X - pa.L[nowi].StartPoint.P.X) / (pa.L[nowi].EndPoint.P.Y - pa.L[nowi].StartPoint.P.Y);
+                            if (Math.Abs(pre_m - now_m) < 0.001 || Math.Abs(pre_m - now_m) > 1000)
+                            {
+                                pa.L[nowi].Seam = temp;
+                                pa.L[nowi].isSeam = true;
+                                pre_m = now_m;
+                            }
+                            else break;
+                        }
+                        for (int i = 1; i < pa.L.Count(); i++)
+                        {
+                            int nowi = (index - i + pa.L.Count()) % pa.L.Count();
+                            if (pa.L[nowi] == null) break;
+                            float now_m = (pa.L[nowi].EndPoint.P.X - pa.L[nowi].StartPoint.P.X) / (pa.L[nowi].EndPoint.P.Y - pa.L[nowi].StartPoint.P.Y);
+                            if (Math.Abs(pre_m - now_m) < 0.001 || Math.Abs(pre_m - now_m) > 1000)
+                            {
+                                pa.L[nowi].Seam = temp;
+                                pa.L[nowi].isSeam = true;
+                                pre_m = now_m;
+                            }
+                            else break;
+                        }
+                    }
                     RefreshPorperty();
                     pictureBox1.Refresh();
                 }
