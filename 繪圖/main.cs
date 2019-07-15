@@ -1833,7 +1833,6 @@ namespace 繪圖
                             p = c[0].path[0];
                             for (int i = c[0].path.Count - 2; i >= 0; i--)
                             {
-
                                 poly_vert.Add(c[0].path[i].P);
                                 distList.Add(c[0].Seam);
                                 IsCurveP.Add(true);
@@ -1865,9 +1864,9 @@ namespace 繪圖
                 List<PointF> forextend = new List<PointF>();
                 forextend.Add(poly_vert[0]);
                 float pre_m = (poly_vert[1].X - poly_vert[0].X) / (poly_vert[1].Y - poly_vert[0].X);
-                for(int i = 1; i < poly_vert.Count(); i++)
+                for(int i = 1; i < poly_vert.Count; i++)
                 {
-                    int next = (i + 1) % poly_vert.Count();
+                    int next = (i + 1) % poly_vert.Count;
                     float now_m = (poly_vert[next].X - poly_vert[i].X) / (poly_vert[next].Y - poly_vert[i].X);
                     if (now_m == pre_m)
                         forextend.Add(new PointF(poly_vert[i].X + 1, poly_vert[i].Y + 1));
@@ -1894,15 +1893,18 @@ namespace 繪圖
                         {
                             if (pathcount == path.C[cindex].path.Count - 1) break;
                             PointF c1, c2;
+                            float b1 = (float)(Math.Sqrt(Math.Pow(todrawl[i].X, 2) + Math.Pow(todrawl[i].Y, 2)) / Math.Sqrt(Math.Pow(forextend[i].X, 2) + Math.Pow(forextend[i].Y, 2))),
+                                b2 = (float)(Math.Sqrt(Math.Pow(todrawl[(i + 1) % todrawl.Count].X, 2) + Math.Pow(todrawl[(i + 1) % todrawl.Count].Y, 2)) / 
+                                Math.Sqrt(Math.Pow(forextend[(i + 1) % todrawl.Count].X, 2) + Math.Pow(forextend[(i + 1) % todrawl.Count].Y, 2)));
                             if (tsfe)
                             {
-                                c1 = new PointF(todrawl[i].X + path.C[cindex].disSecond[cpathindex].X, todrawl[i].Y + path.C[cindex].disSecond[cpathindex].Y);
-                                c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disFirst[cpathindex + pors].X, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disFirst[cpathindex + pors].Y);
+                                c1 = new PointF(todrawl[i].X + path.C[cindex].disSecond[cpathindex].X*b1, todrawl[i].Y + path.C[cindex].disSecond[cpathindex].Y*b1);
+                                c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disFirst[cpathindex + pors].X*b2, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disFirst[cpathindex + pors].Y*b2);
                             }
                             else
                             {
-                                c1 = new PointF(todrawl[i].X + path.C[cindex].disFirst[cpathindex].X, todrawl[i].Y + path.C[cindex].disFirst[cpathindex].Y);
-                                c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disSecond[cpathindex + pors].X, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disSecond[cpathindex + pors].Y);
+                                c1 = new PointF(todrawl[i].X + path.C[cindex].disFirst[cpathindex].X*b1, todrawl[i].Y + path.C[cindex].disFirst[cpathindex].Y*b1);
+                                c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disSecond[cpathindex + pors].X*b2, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disSecond[cpathindex + pors].Y*b2);
                             }
                             PointF[] cp = { new PointF(todrawl[i].X * ZoomSize , todrawl[i].Y* ZoomSize), new PointF(c1.X* ZoomSize, c1.Y* ZoomSize), new PointF(c2.X* ZoomSize, c2.Y* ZoomSize),
                                             new PointF(todrawl[(i + 1) % todrawl.Count].X* ZoomSize, todrawl[(i + 1) % todrawl.Count].Y* ZoomSize) };
@@ -1912,6 +1914,7 @@ namespace 繪圖
                             pathcount++;
                         }
                         i--;
+                        
                     }
                 }
             }
