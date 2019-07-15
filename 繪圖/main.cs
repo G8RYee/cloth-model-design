@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Drawing.Printing;
 //ctrl+A => ctrl+M 兩下 全部摺疊
 namespace 繪圖
 {
@@ -6148,6 +6149,52 @@ namespace 繪圖
                     pictureBox1.Refresh();
                 }
             }
+        }
+
+        private void printDocument1_PrintPage(object sender, PrintPageEventArgs e)
+        {
+            int charactersOnPage = 0;
+            int linesPerPage = 0;
+            string stringToPrint = "8888888888" , documentContents = "8888888888";
+
+            // Sets the value of charactersOnPage to the number of characters 
+            // of stringToPrint that will fit within the bounds of the page.
+            e.Graphics.MeasureString(stringToPrint, this.Font,
+                e.MarginBounds.Size, StringFormat.GenericTypographic,
+                out charactersOnPage, out linesPerPage);
+
+            // Draws the string within the bounds of the page.
+            e.Graphics.DrawString(stringToPrint, this.Font, Brushes.Black,
+            e.MarginBounds, StringFormat.GenericTypographic);
+
+            foreach (var line in LineList)
+            {
+                var color = Color.Black;
+                var size = 1;
+                if (SelectedGroup != null)
+                {
+                    color = SelectedGroup.L.FindIndex(x => x == line) < 0 ? Color.Black : Color.Red;
+                    size = SelectedGroup.L.FindIndex(x => x == line) < 0 ? 1 : 2;
+                }
+                var pen = new Pen(color, size);
+                e.Graphics.DrawLine(pen, line.StartPoint.P.X * ZoomSize, line.StartPoint.P.Y * ZoomSize, line.EndPoint.P.X * ZoomSize, line.EndPoint.P.Y * ZoomSize);
+            }
+
+            // Remove the portion of the string that has been printed.
+            stringToPrint = stringToPrint.Substring(charactersOnPage);
+
+            // Check to see if more pages are to be printed.
+            e.HasMorePages = (stringToPrint.Length > 0);
+
+            // If there are no more pages, reset the string to be printed.
+            if (!e.HasMorePages)
+                stringToPrint = documentContents;
+        }
+
+        private void toolStripButton16_Click(object sender, EventArgs e)
+        {
+            printPreviewDialog1.Document = printDocument1;
+            printPreviewDialog1.ShowDialog();
         }
     }
 }
