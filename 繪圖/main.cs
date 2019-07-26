@@ -2027,8 +2027,15 @@ namespace 繪圖
             {
                 PointF pt1, pt2;
                 float dist;
+                bool inlist = false;
                 pd.Get_Dist_Point(out dist, out pt1, out pt2);
-                if (((pt1.X == -1 && pt1.Y == -1) || (pt2.X == -1 && pt2.Y == -1)))
+                if (pd.type == 0)
+                    inlist = LineList.Exists(x => x == pd.L1) && LineList.Exists(x => x == pd.L2);
+                else if (pd.type == 1)
+                    inlist = LineList.Exists(x => x == pd.L1) && CurveList.Exists(x => x == pd.C1);
+                else if (pd.type == 2)
+                    inlist = CurveList.Exists(x => x == pd.C1) && CurveList.Exists(x => x == pd.C2);
+                if ((pt1.X == -1 && pt1.Y == -1) || (pt2.X == -1 && pt2.Y == -1) || inlist == false)
                 {
                     pdl.Add(pd);
                 }
@@ -4646,7 +4653,8 @@ namespace 繪圖
         }
         private void toolStripButton9_Click(object sender, EventArgs e)//縮小 
         {
-            ZoomSize -= 0.25F;
+            if (ZoomSize > 0.25F)
+                ZoomSize -= 0.25F;
             pictureBox1.Image = new Bitmap((int)(TabpageDataList[tabControl1.SelectedIndex].width * ZoomSize), (int)(TabpageDataList[tabControl1.SelectedIndex].height * ZoomSize));
             pictureBox2.Image = new Bitmap((int)(pictureBox1.Width) + 20, (int)(pictureBox1.Height) + 20);
             toolStripStatusLabel3.Text = "縮放大小:" + ZoomSize * 100 + "%";
@@ -6153,42 +6161,213 @@ namespace 繪圖
 
         private void printDocument1_PrintPage(object sender, PrintPageEventArgs e)
         {
-            int charactersOnPage = 0;
-            int linesPerPage = 0;
-            string stringToPrint = "8888888888" , documentContents = "8888888888";
+            Print_Paint_Lines(e);
+            Print_Paint_Curves(e);
+            Print_Paint_Arcs(e);
+            Print_Paint_Seam(e);
+        }
 
-            // Sets the value of charactersOnPage to the number of characters 
-            // of stringToPrint that will fit within the bounds of the page.
-            e.Graphics.MeasureString(stringToPrint, this.Font,
-                e.MarginBounds.Size, StringFormat.GenericTypographic,
-                out charactersOnPage, out linesPerPage);
-
-            // Draws the string within the bounds of the page.
-            e.Graphics.DrawString(stringToPrint, this.Font, Brushes.Black,
-            e.MarginBounds, StringFormat.GenericTypographic);
-
+        private void Print_Paint_Lines(PrintPageEventArgs e)
+        {
             foreach (var line in LineList)
             {
                 var color = Color.Black;
                 var size = 1;
-                if (SelectedGroup != null)
-                {
-                    color = SelectedGroup.L.FindIndex(x => x == line) < 0 ? Color.Black : Color.Red;
-                    size = SelectedGroup.L.FindIndex(x => x == line) < 0 ? 1 : 2;
-                }
                 var pen = new Pen(color, size);
                 e.Graphics.DrawLine(pen, line.StartPoint.P.X * ZoomSize, line.StartPoint.P.Y * ZoomSize, line.EndPoint.P.X * ZoomSize, line.EndPoint.P.Y * ZoomSize);
             }
+        }
+        private void Print_Paint_Curves(PrintPageEventArgs e)
+        {
+            foreach (var c in CurveList)
+            {
+                var color = Color.Black;
+                var size = 1;
+                var pen = new Pen(color, size);
+                List<PointF> t = GraphCurveToBez(c);
+                for (int i = 0; i < t.Count; i++)
+                {
+                    t[i] = new PointF(t[i].X * ZoomSize, t[i].Y * ZoomSize);
+                }
+                e.Graphics.DrawBeziers(pen, t.ToArray());
+            }
+        }
+        private void Print_Paint_Arcs(PrintPageEventArgs e)
+        {
+            foreach (var a in ArcList)
+            {
+                var color = Color.Black;
+                var size = 1;
+                var pen = new Pen(color, size);
+                var arr = a.to_cubic_bezier();
+                for (int i = 0; i < 4; i++)
+                {
+                    arr[i].X *= ZoomSize;
+                    arr[i].Y *= ZoomSize;
+                }
+                e.Graphics.DrawBezier(pen, arr[0], arr[1], arr[2], arr[3]);
+            }
+        }
+        private void Print_Paint_Seam(PrintPageEventArgs e)
+        {
+            var pe = new Pen(Color.Gray, 1);
+            float[] dash = { 5, 5 };
+            pe.DashPattern = dash;
+            foreach (var path in PathList)
+            {
+                float minx, miny, maxx, maxy;
+                minx = path.P[0].P.X;
+                miny = path.P[0].P.Y;
+                maxx = path.P[0].P.X;
+                maxy = path.P[0].P.Y;
+                foreach (var po in path.P)
+                {
+                    if (minx > po.P.X)
+                        minx = po.P.X;
+                    if (miny > po.P.Y)
+                        miny = po.P.Y;
+                    if (maxx < po.P.X)
+                        maxx = po.P.X;
+                    if (maxy < po.P.Y)
+                        maxy = po.P.Y;
+                }
+                List<PointF> poly_vert = new List<PointF>();
+                List<float> distList = new List<float>();
+                bool[] check = new bool[path.L.Count]; for (int i = 0; i < check.Count(); i++) check[i] = false;
+                List<bool> IsCurveP = new List<bool>();
+                GraphPoint p = path.P[0];
+                poly_vert.Add(p.P);
+                IsCurveP.Add(false);
+                do
+                {
+                    List<GraphLine> l = new List<GraphLine>();
+                    List<GraphCurve> c = new List<GraphCurve>();
+                    l = path.L.FindAll(x => x != null ? (x.StartPoint == p || x.EndPoint == p) : false);
+                    c = path.C.FindAll(x => x != null ? (x.path[0] == p || x.path.Last() == p) : false);
+                    if (l.Count > 0)
+                    {
+                        if (check[path.L.FindIndex(x => x == l[0])] == true)
+                            l.RemoveAt(0);
+                    }
+                    if (c.Count > 0)
+                    {
+                        if (check[path.C.FindIndex(x => x == c[0])] == true)
+                            c.RemoveAt(0);
+                    }
+                    if (l.Count > 0)
+                    {
+                        if (l[0].StartPoint == p)
+                            p = l[0].EndPoint;
+                        else
+                            p = l[0].StartPoint;
+                        distList.Add(l[0].Seam);
+                        poly_vert.Add(p.P);
+                        IsCurveP.Add(false);
+                        check[path.L.FindIndex(x => x == l[0])] = true;
+                    }
+                    else if (c.Count > 0)
+                    {
+                        IsCurveP[IsCurveP.Count - 1] = true;
+                        if (c[0].path[0] == p)
+                        {
+                            p = c[0].path.Last();
+                            for (int i = 1; i < c[0].path.Count; i++)
+                            {
+                                poly_vert.Add(c[0].path[i].P);
+                                distList.Add(c[0].Seam);
+                                IsCurveP.Add(true);
+                            }
+                        }
+                        else
+                        {
+                            p = c[0].path[0];
+                            for (int i = c[0].path.Count - 2; i >= 0; i--)
+                            {
+                                poly_vert.Add(c[0].path[i].P);
+                                distList.Add(c[0].Seam);
+                                IsCurveP.Add(true);
+                            }
+                        }
+                        IsCurveP[IsCurveP.Count - 1] = false;
+                        check[path.C.FindIndex(x => x == c[0])] = true;
+                    }
+                } while (p != path.P[0]);
+                poly_vert.RemoveAt(0);
+                IsCurveP.RemoveAt(0);
+                do
+                {
+                    if (IsCurveP[0])
+                    {
+                        if (path.C.Exists(x => x != null ? (x.path[0].P.X == poly_vert[0].X && x.path[0].P.Y == poly_vert[0].Y) : false))
+                            break;
+                        else if (path.C.Exists(x => x != null ? (x.path.Last().P.X == poly_vert[0].X && x.path.Last().P.Y == poly_vert[0].Y) : false))
+                            break;
+                        IsCurveP.Add(IsCurveP[0]);
+                        poly_vert.Add(poly_vert[0]);
+                        IsCurveP.RemoveAt(0);
+                        poly_vert.RemoveAt(0);
+                        continue;
+                    }
+                    else
+                        break;
+                } while (true);
+                List<PointF> forextend = new List<PointF>();
+                forextend.Add(poly_vert[0]);
+                float pre_m = (poly_vert[1].X - poly_vert[0].X) / (poly_vert[1].Y - poly_vert[0].X);
+                for (int i = 1; i < poly_vert.Count; i++)
+                {
+                    int next = (i + 1) % poly_vert.Count;
+                    float now_m = (poly_vert[next].X - poly_vert[i].X) / (poly_vert[next].Y - poly_vert[i].X);
+                    if (now_m == pre_m)
+                        forextend.Add(new PointF(poly_vert[i].X + 1, poly_vert[i].Y + 1));
+                    else
+                        forextend.Add(poly_vert[i]);
+                    pre_m = now_m;
+                }
+                List<PointF> todrawl = extend_polygon(forextend, distList);
+                for (int i = 0; i < todrawl.Count; i++)
+                {
+                    if (IsCurveP[i] == false)
+                    {
+                        e.Graphics.DrawLine(pe, todrawl[i].X * ZoomSize, todrawl[i].Y * ZoomSize, todrawl[(i + 1) % todrawl.Count].X * ZoomSize, todrawl[(i + 1) % todrawl.Count].Y * ZoomSize);
+                    }
+                    else
+                    {
+                        int pathcount = 0;
+                        int cindex = path.C.FindIndex(x => x != null ? (x.path.Exists(y => y.P.X == poly_vert[(i + 1) % todrawl.Count].X && y.P.Y == poly_vert[(i + 1) % todrawl.Count].Y))
+                                                                    && (x.path.Exists(y => y.P.X == poly_vert[(i) % todrawl.Count].X && y.P.Y == poly_vert[(i) % todrawl.Count].Y)) : false);
+                        bool tsfe = (path.C[cindex].path[0].P.X == poly_vert[i].X && path.C[cindex].path[0].P.Y == poly_vert[i].Y);
+                        int cpathindex = tsfe ? 0 : path.C[cindex].path.Count - 1;
+                        int pors = tsfe ? 1 : -1;
+                        while (IsCurveP[i % todrawl.Count] == true)
+                        {
+                            if (pathcount == path.C[cindex].path.Count - 1) break;
+                            PointF c1, c2;
+                            float b1 = (float)(Math.Sqrt(Math.Pow(todrawl[i].X, 2) + Math.Pow(todrawl[i].Y, 2)) / Math.Sqrt(Math.Pow(forextend[i].X, 2) + Math.Pow(forextend[i].Y, 2))),
+                                b2 = (float)(Math.Sqrt(Math.Pow(todrawl[(i + 1) % todrawl.Count].X, 2) + Math.Pow(todrawl[(i + 1) % todrawl.Count].Y, 2)) /
+                                Math.Sqrt(Math.Pow(forextend[(i + 1) % todrawl.Count].X, 2) + Math.Pow(forextend[(i + 1) % todrawl.Count].Y, 2)));
+                            if (tsfe)
+                            {
+                                c1 = new PointF(todrawl[i].X + path.C[cindex].disSecond[cpathindex].X * b1, todrawl[i].Y + path.C[cindex].disSecond[cpathindex].Y * b1);
+                                c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disFirst[cpathindex + pors].X * b2, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disFirst[cpathindex + pors].Y * b2);
+                            }
+                            else
+                            {
+                                c1 = new PointF(todrawl[i].X + path.C[cindex].disFirst[cpathindex].X * b1, todrawl[i].Y + path.C[cindex].disFirst[cpathindex].Y * b1);
+                                c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disSecond[cpathindex + pors].X * b2, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disSecond[cpathindex + pors].Y * b2);
+                            }
+                            PointF[] cp = { new PointF(todrawl[i].X * ZoomSize , todrawl[i].Y* ZoomSize), new PointF(c1.X* ZoomSize, c1.Y* ZoomSize), new PointF(c2.X* ZoomSize, c2.Y* ZoomSize),
+                                            new PointF(todrawl[(i + 1) % todrawl.Count].X* ZoomSize, todrawl[(i + 1) % todrawl.Count].Y* ZoomSize) };
+                            e.Graphics.DrawBeziers(pe, cp);
+                            cpathindex += pors;
+                            i++;
+                            pathcount++;
+                        }
+                        i--;
 
-            // Remove the portion of the string that has been printed.
-            stringToPrint = stringToPrint.Substring(charactersOnPage);
-
-            // Check to see if more pages are to be printed.
-            e.HasMorePages = (stringToPrint.Length > 0);
-
-            // If there are no more pages, reset the string to be printed.
-            if (!e.HasMorePages)
-                stringToPrint = documentContents;
+                    }
+                }
+            }
         }
 
         private void toolStripButton16_Click(object sender, EventArgs e)
