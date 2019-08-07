@@ -1203,11 +1203,11 @@ namespace 繪圖
         }
         private void 新影像ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            pictureBox1.Width = (int)(800 * ZoomSize);
-            pictureBox1.Height = (int)(600 * ZoomSize);
-            pictureBox1.Image = new Bitmap((int)(800*ZoomSize), (int)(600 * ZoomSize));
-            pictureBox2.Width = (int)((800) * ZoomSize)+20;
-            pictureBox2.Height = (int)((600) * ZoomSize)+20;
+            pictureBox1.Width = (int)(595 * ZoomSize);
+            pictureBox1.Height = (int)(842 * ZoomSize);
+            pictureBox1.Image = new Bitmap((int)(595 * ZoomSize), (int)(842 * ZoomSize));
+            pictureBox2.Width = (int)((595 * ZoomSize))+20;
+            pictureBox2.Height = (int)((842) * ZoomSize)+20;
             Graphics g = Graphics.FromImage(pictureBox1.Image);
             g.Clear(Color.WhiteSmoke);
             PointsList = new List<GraphPoint>();
@@ -1241,8 +1241,8 @@ namespace 繪圖
             a.TextL = TextList;
             a.PathL = PathList;
             a.Undo = Undo_Data;
-            a.width = 800;
-            a.height = 600;
+            a.width = 595;
+            a.height = 842;
             a.TabpageName = TabpagesList[0].Text;
             TabpageDataList.Add(a);
             Push_Undo_Data();
@@ -1524,7 +1524,7 @@ namespace 繪圖
                 e.Graphics.DrawRectangle(pe, x * ZoomSize, y * ZoomSize, width * ZoomSize, height * ZoomSize);
             }
         }
-        private void Paint_Path(PaintEventArgs e)////////////
+        private void Paint_Path(PaintEventArgs e)
         {
             GraphGroup path = In_Path(SelectedLine, SelectedCurve);
             if (!hidepoints)
@@ -2044,9 +2044,9 @@ namespace 繪圖
                     e.Graphics.DrawLine(pe_line, pt1.X * ZoomSize, pt1.Y * ZoomSize, pt2.X * ZoomSize, pt2.Y * ZoomSize);
                     PointF mid = new PointF((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2);
                     if (LenthUnit == 0)
-                        dist /= 10;
+                        dist /= 72/2.54F;
                     else
-                        dist /= 25.4F;
+                        dist /= 72F;
                     e.Graphics.DrawString(dist.ToString("F") + (LenthUnit == 0 ? " cm" : " inch"), fo, Brushes.Black, mid.X * ZoomSize, mid.Y * ZoomSize);
                 }
             }
@@ -4680,11 +4680,11 @@ namespace 繪圖
             double t;
             if (double.TryParse(toolStripTextBox1.Text, out t))
             {
-                SizeOfNet = LenthUnit == 0 ? t * 10 * 2 : t * 25.4 * 2;
+                SizeOfNet = LenthUnit == 0 ? t * 72 / 2.54 : t * 72;
             }
             else
             {
-                toolStripTextBox1.Text = SizeOfNet / (LenthUnit == 0 ? 10 * 2 : 25.4 * 2) + "";
+                toolStripTextBox1.Text = SizeOfNet / (LenthUnit == 0 ? 72 / 2.54 : 72) + "";
             }
             Refresh();
         }
@@ -5504,10 +5504,10 @@ namespace 繪圖
                 ArcList = new List<GraphArc>();
                 TextList = new List<GraphText>();
                 PathList = new List<GraphGroup>();
-                pictureBox1.Width = (int)(800*ZoomSize);
-                pictureBox1.Height = (int)(600 * ZoomSize);
-                pictureBox2.Width = (int)(800 * ZoomSize) + 20;
-                pictureBox2.Height = (int)(600 * ZoomSize) + 20;
+                pictureBox1.Width = (int)(595 * ZoomSize);
+                pictureBox1.Height = (int)(842 * ZoomSize);
+                pictureBox2.Width = (int)(595 * ZoomSize) + 20;
+                pictureBox2.Height = (int)(842 * ZoomSize) + 20;
                 Undo_Data = new List<TabpageData>();
                 TabpageData a = new TabpageData();
                 a.CurveL = CurveList;
@@ -5519,8 +5519,8 @@ namespace 繪圖
                 a.PathL = PathList;
                 a.Undo = Undo_Data;
                 a.TabpageName = t.Text;
-                a.width = 800;
-                a.height = 600;
+                a.width = 595;
+                a.height = 842;
                 TabpageDataList.Add(a);
 
                 t.Controls.Add(pictureBox1);
@@ -5607,12 +5607,12 @@ namespace 繪圖
                     PathList.RemoveAll(x => x.C.Exists(y => y == Right_Temp_Curve));
                 PointsList.Add(p);
                 GraphCurve c = CurveInsert(Right_Temp_Curve, Right_Temp_Curve_Index, p);
-                DeleteHoleCurve(Right_Temp_Curve);
                 CurveList.Add(c);
-                foreach(var poi in c.path)
+                foreach (var poi in c.path)
                 {
                     poi.Relative++;
                 }
+                DeleteHoleCurve(Right_Temp_Curve);
                 Push_Undo_Data();
             }
             ClearRighttemp();
@@ -6061,7 +6061,7 @@ namespace 繪圖
                             int nowi = (i + index) % pa.L.Count();
                             if (pa.L[nowi] == null) break;
                             float now_m = (pa.L[nowi].EndPoint.P.X - pa.L[nowi].StartPoint.P.X) / (pa.L[nowi].EndPoint.P.Y - pa.L[nowi].StartPoint.P.Y);
-                            if (Math.Abs(pre_m - now_m) < 0.001 || Math.Abs(pre_m - now_m) > 1000)
+                            if (Math.Abs(pre_m - now_m) < 0.001)
                             {
                                 pa.L[nowi].Seam = temp;
                                 pa.L[nowi].isSeam = true;
@@ -6074,7 +6074,7 @@ namespace 繪圖
                             int nowi = (index - i + pa.L.Count()) % pa.L.Count();
                             if (pa.L[nowi] == null) break;
                             float now_m = (pa.L[nowi].EndPoint.P.X - pa.L[nowi].StartPoint.P.X) / (pa.L[nowi].EndPoint.P.Y - pa.L[nowi].StartPoint.P.Y);
-                            if (Math.Abs(pre_m - now_m) < 0.001 || Math.Abs(pre_m - now_m) > 1000)
+                            if (Math.Abs(pre_m - now_m) < 0.001)
                             {
                                 pa.L[nowi].Seam = temp;
                                 pa.L[nowi].isSeam = true;
@@ -6161,10 +6161,14 @@ namespace 繪圖
 
         private void printDocument1_PrintPage(object sender, PrintPageEventArgs e)
         {
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             Print_Paint_Lines(e);
             Print_Paint_Curves(e);
             Print_Paint_Arcs(e);
             Print_Paint_Seam(e);
+            Print_Paint_Text(e);
+            Print_Paint_PathDist(e);
         }
 
         private void Print_Paint_Lines(PrintPageEventArgs e)
@@ -6369,6 +6373,50 @@ namespace 繪圖
                 }
             }
         }
+        private void Print_Paint_Text(PrintPageEventArgs e)
+        {
+            foreach (var s in TextList)
+            {
+                var fo = new Font("新細明體", 12);
+                e.Graphics.DrawString(s.S, fo, Brushes.Black, s.P.X * ZoomSize, s.P.Y * ZoomSize);
+            }
+        }
+        private void Print_Paint_PathDist(PrintPageEventArgs e)
+        {
+            var pe_line = new Pen(Color.Gray, 1);
+            var fo = new Font("新細明體", 12);
+            List<PathDistance> pdl = new List<PathDistance>();
+            foreach (var pd in PDistList)
+            {
+                PointF pt1, pt2;
+                float dist;
+                bool inlist = false;
+                pd.Get_Dist_Point(out dist, out pt1, out pt2);
+                if (pd.type == 0)
+                    inlist = LineList.Exists(x => x == pd.L1) && LineList.Exists(x => x == pd.L2);
+                else if (pd.type == 1)
+                    inlist = LineList.Exists(x => x == pd.L1) && CurveList.Exists(x => x == pd.C1);
+                else if (pd.type == 2)
+                    inlist = CurveList.Exists(x => x == pd.C1) && CurveList.Exists(x => x == pd.C2);
+                if ((pt1.X == -1 && pt1.Y == -1) || (pt2.X == -1 && pt2.Y == -1) || inlist == false)
+                {
+                    pdl.Add(pd);
+                }
+                else
+                {
+                    e.Graphics.DrawLine(pe_line, pt1.X * ZoomSize, pt1.Y * ZoomSize, pt2.X * ZoomSize, pt2.Y * ZoomSize);
+                    PointF mid = new PointF((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2);
+                    if (LenthUnit == 0)
+                        dist /= 72/2.54F;
+                    else
+                        dist /= 72F;
+                    e.Graphics.DrawString(dist.ToString("F") + (LenthUnit == 0 ? " cm" : " inch"), fo, Brushes.Black, mid.X * ZoomSize, mid.Y * ZoomSize);
+                }
+            }
+            foreach (var pd in pdl)
+                PDistList.Remove(pd);
+        }
+
 
         private void toolStripButton16_Click(object sender, EventArgs e)
         {
@@ -6376,4 +6424,4 @@ namespace 繪圖
             printPreviewDialog1.ShowDialog();
         }
     }
-}
+} 
