@@ -108,13 +108,16 @@ namespace 繪圖
             {
                 StartPoint = a;
                 EndPoint = b;
+                co = Color.Black;
                 Seam = 0;
                 isSeam = false;
             }
             public GraphPoint StartPoint;
             public GraphPoint EndPoint;
             public float Seam;
+            public float SeamText;
             public bool isSeam;
+            public Color co;
         }
         public class GraphPoint
         {
@@ -166,6 +169,8 @@ namespace 繪圖
             public List<int> type = new List<int>();//0:L=R 1:L.angle=R 2:L!=R
             public bool isSeam = false;
             public float Seam = 0;
+            public float SeamText;
+            public Color co = Color.Black;
             public bool equal(GraphCurve c)
             {
                 if (path.Count != c.path.Count)
@@ -182,6 +187,7 @@ namespace 繪圖
         {
             public GraphPoint StartPoint, EndPoint;
             private PointF ControlPoint;
+            public Color co = Color.Black;
             public GraphArc(GraphPoint st, GraphPoint en, PointF ctp)
             {
                 StartPoint = st;
@@ -1371,8 +1377,9 @@ namespace 繪圖
             {
                 for (float i = 0; i < this.pictureBox1.Height; i += (float)SizeOfNet)
                 {
-                    var pen = new Pen(Color.LightGray, 1);
+                    var pen = new Pen(Color.LightSlateGray, 1);
                     e.Graphics.DrawLine(pen, new PointF(0, i * ZoomSize), new PointF(this.pictureBox1.Width, i * ZoomSize));
+                    pen = new Pen(Color.LightGray, 1);
                     for (int j = 1; j <= DesityOfNet; j++)
                     {
                         e.Graphics.DrawLine(pen, new PointF(0, (i + (float)SizeOfNet / DesityOfNet * j) * ZoomSize), new PointF(this.pictureBox1.Width, (i + (float)SizeOfNet / DesityOfNet * j) * ZoomSize));
@@ -1380,8 +1387,9 @@ namespace 繪圖
                 }
                 for (float i = 0; i < this.pictureBox1.Width; i += (float)SizeOfNet)
                 {
-                    var pen = new Pen(Color.LightGray, 1);
+                    var pen = new Pen(Color.LightSlateGray, 1);
                     e.Graphics.DrawLine(pen, new PointF(i * ZoomSize, 0), new PointF(i * ZoomSize, this.pictureBox1.Height));
+                    pen = new Pen(Color.LightGray, 1);
                     for (int j = 1; j <= DesityOfNet; j++)
                     {
                         e.Graphics.DrawLine(pen, new PointF((i + (float)SizeOfNet / DesityOfNet * j) * ZoomSize, 0), new PointF((i + (float)SizeOfNet / DesityOfNet * j) * ZoomSize, this.pictureBox1.Height));
@@ -1393,11 +1401,11 @@ namespace 繪圖
         {
             foreach (var line in LineList)
             {
-                var color = Color.Black;
+                var color = line.co;
                 var size = 1;
                 if (SelectedGroup != null)
                 {
-                    color = SelectedGroup.L.FindIndex(x => x == line) < 0 ? Color.Black : Color.Red;
+                    color = SelectedGroup.L.FindIndex(x => x == line) < 0 ? line.co : Color.Red;
                     size = SelectedGroup.L.FindIndex(x => x == line) < 0 ? 1 : 2;
                 }
                 var pen = new Pen(color, size);
@@ -1421,11 +1429,11 @@ namespace 繪圖
         {
             foreach (var c in CurveList)
             {
-                var color = Color.Black;
+                var color = c.co;
                 var size = 1;
                 if (SelectedGroup != null)
                 {
-                    color = SelectedGroup.C.FindIndex(x => x == c) < 0 ? Color.Black : Color.Red;
+                    color = SelectedGroup.C.FindIndex(x => x == c) < 0 ? c.co : Color.Red;
                     size = SelectedGroup.C.FindIndex(x => x == c) < 0 ? 1 : 2;
                 }
                 var pen = new Pen(color, size);
@@ -1469,11 +1477,11 @@ namespace 繪圖
         {
             foreach (var a in ArcList)
             {
-                var color = Color.Black;
+                var color = a.co;
                 var size = 1;
                 if (SelectedGroup != null)
                 {
-                    color = SelectedGroup.A.FindIndex(x => x == a) < 0 ? Color.Black : Color.Red;
+                    color = SelectedGroup.A.FindIndex(x => x == a) < 0 ? a.co : Color.Red;
                     size = SelectedGroup.A.FindIndex(x => x == a) < 0 ? 1 : 2;
                 }
                 var pen = new Pen(color, size);
@@ -1919,6 +1927,39 @@ namespace 繪圖
                     }
                 }
             }
+        }
+        private List<GraphLine> DevideCurve(GraphCurve c)
+        {
+            List<GraphLine> ans = new List<GraphLine>();
+            for (int i = 0; i < c.path.Count; i++)
+            {
+                PointF p1 = c.path[i].P, p2 = c.path[i + 1].P;
+                PointF c1 = new PointF(p1.X + c.disSecond[i].X, p1.Y + c.disSecond[i].Y), c2 = new PointF(p2.X + c.disFirst[i + 1].X, p2.Y + c.disFirst[i].Y);
+                for (double j = 0; j < 1;)
+                {
+                    double x = p1.X * Math.Pow(1 - j, 3) +
+                           3 * c1.X * Math.Pow(1 - j, 2) * j +
+                           3 * c2.X * Math.Pow(j, 2) * (1 - j) +
+                               p2.X * Math.Pow(j, 3);
+                    double y = p1.Y * Math.Pow(1 - j, 3) +
+                           3 * c1.Y * Math.Pow(1 - j, 2) * j +
+                           3 * c2.Y * Math.Pow(j, 2) * (1 - j) +
+                               p2.Y * Math.Pow(j, 3);
+                    GraphPoint Lp1 = new GraphPoint((float)x, (float)y);
+                    j += 0.4;
+                    x = p1.X * Math.Pow(1 - j, 3) +
+                    3 * c1.X * Math.Pow(1 - j, 2) * j +
+                    3 * c2.X * Math.Pow(j, 2) * (1 - j) +
+                        p2.X * Math.Pow(j, 3);
+                    y = p1.Y * Math.Pow(1 - j, 3) +
+                    3 * c1.Y * Math.Pow(1 - j, 2) * j +
+                    3 * c2.Y * Math.Pow(j, 2) * (1 - j) +
+                        p2.Y * Math.Pow(j, 3);
+                    GraphPoint Lp2 = new GraphPoint((float)x, (float)y);
+                    ans.Add(new GraphLine(Lp1, Lp2));
+                }
+            }
+            return ans;
         }
         private List<PointF> extend_polygon(List<PointF> pList, List<float> distList)
         {
@@ -3533,6 +3574,7 @@ namespace 繪圖
             直線等分ToolStripMenuItem.Visible = false;
             選取整個圖形ToolStripMenuItem.Visible = false;
             移除距離標示ToolStripMenuItem.Visible = false;
+            變更顏色ToolStripMenuItem.Visible = false;
             foreach (var c in CurveList)
             {
                 if (c.path.Exists(x => x == SelectedPoint))
@@ -3606,6 +3648,7 @@ namespace 繪圖
                     else
                         直線等分ToolStripMenuItem.Text = "取消等分標記";
                     直線等分ToolStripMenuItem.Visible = true;
+                    變更顏色ToolStripMenuItem.Visible = true;
                     Right_Temp_Mouse_Pos = e;
                     contextMenuStrip1.Show(MousePosition);
                 }
@@ -3620,6 +3663,7 @@ namespace 繪圖
                     Right_Temp_Curve = SelectedCurve;
                     Right_Temp_Curve_Index = SelectedCurveIndex;
                     toolStripMenuItem2.Text = "刪除整條曲線";
+                    變更顏色ToolStripMenuItem.Visible = true;
                     Right_Temp_Mouse_Pos = e;
                     contextMenuStrip1.Show(MousePosition);
                 }
@@ -3656,6 +3700,7 @@ namespace 繪圖
                 else
                     直線等分ToolStripMenuItem.Text = "取消等分標記";
                 直線等分ToolStripMenuItem.Visible = true;
+                變更顏色ToolStripMenuItem.Visible = true;
                 if (PDistList.Exists(x => x.L1 == SelectedLine || x.L2 == SelectedLine))
                     移除距離標示ToolStripMenuItem.Visible = true;
                 Right_Temp_Mouse_Pos = e;
@@ -3671,6 +3716,7 @@ namespace 繪圖
                 Right_Temp_Curve = SelectedCurve;
                 Right_Temp_Curve_Index = SelectedCurveIndex;
                 toolStripMenuItem2.Text = "刪除整條曲線";
+                變更顏色ToolStripMenuItem.Visible = true;
                 if (PDistList.Exists(x => x.C1 == SelectedCurve || x.C2 == SelectedCurve))
                     移除距離標示ToolStripMenuItem.Visible = true;
                 Right_Temp_Mouse_Pos = e;
@@ -3682,6 +3728,7 @@ namespace 繪圖
                 轉換為曲線ToolStripMenuItem.Visible = true;
                 Right_Temp_Arc = SelectedArc;
                 toolStripMenuItem2.Text = "刪除圓弧";
+                變更顏色ToolStripMenuItem.Visible = true;
                 Right_Temp_Mouse_Pos = e;
                 contextMenuStrip1.Show(MousePosition);
             }
@@ -4518,7 +4565,9 @@ namespace 繪圖
                 t.PointL[end].Relative++;
                 GraphLine tl = new GraphLine(t.PointL[s], t.PointL[end]);
                 tl.Seam = l.Seam;
+                tl.SeamText = l.SeamText;
                 tl.isSeam = l.isSeam;
+                tl.co = l.co;
                 t.LineL.Add(tl);
             }
             foreach (var c in Undo_Data[Undo_Index].CurveL)
@@ -4533,6 +4582,7 @@ namespace 繪圖
                     gc.disSecond.Add(new PointF(c.disSecond[i].X, c.disSecond[i].Y));
                     gc.type.Add(c.type[i]);
                 }
+                gc.co = c.co;
                 t.CurveL.Add(gc);
             }
             foreach (var a in Undo_Data[Undo_Index].ArcL)
@@ -4542,6 +4592,7 @@ namespace 繪圖
                 t.PointL[s].Relative++;
                 t.PointL[end].Relative++;
                 GraphArc ta = new GraphArc(t.PointL[s], t.PointL[end], a.getControlPoint());
+                ta.co = a.co;
                 t.ArcL.Add(ta);
             }
             foreach (var g in Undo_Data[Undo_Index].GroupL)
@@ -4590,7 +4641,9 @@ namespace 繪圖
                 t.PointL[end].Relative++;
                 GraphLine tl = new GraphLine(t.PointL[s], t.PointL[end]);
                 tl.Seam = l.Seam;
+                tl.SeamText = l.SeamText;
                 tl.isSeam = l.isSeam;
+                tl.co = l.co;
                 t.LineL.Add(tl);
             }
             foreach (var c in Undo_Data[Undo_Index].CurveL)
@@ -4605,6 +4658,7 @@ namespace 繪圖
                     gc.disSecond.Add(new PointF(c.disSecond[i].X, c.disSecond[i].Y));
                     gc.type.Add(c.type[i]);
                 }
+                gc.co = c.co;
                 t.CurveL.Add(gc);
             }
             foreach (var a in Undo_Data[Undo_Index].ArcL)
@@ -4614,6 +4668,7 @@ namespace 繪圖
                 t.PointL[s].Relative++;
                 t.PointL[end].Relative++;
                 GraphArc ta = new GraphArc(t.PointL[s], t.PointL[end], a.getControlPoint());
+                ta.co = a.co;
                 t.ArcL.Add(ta);
             }
             foreach (var g in Undo_Data[Undo_Index].GroupL)
@@ -4775,7 +4830,9 @@ namespace 繪圖
                 t.PointL[e].Relative++;
                 GraphLine tl = new GraphLine(t.PointL[s], t.PointL[e]);
                 tl.Seam = l.Seam;
+                tl.SeamText = l.SeamText;
                 tl.isSeam = l.isSeam;
+                tl.co = l.co;
                 t.LineL.Add(tl);
             }
             foreach(var c in CurveList)
@@ -4792,6 +4849,7 @@ namespace 繪圖
                 }
                 gc.isSeam = c.isSeam;
                 gc.Seam = c.Seam;
+                gc.co = c.co;
                 t.CurveL.Add(gc);
             }
             foreach(var a in ArcList)
@@ -4801,6 +4859,7 @@ namespace 繪圖
                 t.PointL[s].Relative++;
                 t.PointL[e].Relative++;
                 GraphArc ta = new GraphArc(t.PointL[s], t.PointL[e], a.getControlPoint());
+                ta.co = a.co;
                 t.ArcL.Add(ta);
             }
             for(int i = 0; i < PointsList.Count; i++)
@@ -4995,7 +5054,8 @@ namespace 繪圖
                         {
                             LineSeamCheck.Enabled = true;
                             LineSeamCheck.Checked = l.isSeam;
-                            LineSeamText.Text = "" + l.Seam;
+                            LineSeamText.Text = "" + l.SeamText;
+                            LineUnitLable.Text = (LenthUnit == 0 ? "cm" : "inch");
                             LineSeamText.Enabled = l.isSeam;
                         }
                     }
@@ -5017,7 +5077,8 @@ namespace 繪圖
                         {
                             CurveSeamCheck.Enabled = true;
                             CurveSeamCheck.Checked = c.isSeam;
-                            CurveSeamText.Text = "" + c.Seam;
+                            CurveSeamText.Text = "" + c.SeamText;
+                            CurveUnitLable.Text = (LenthUnit == 0 ? "cm" : "inch");
                             CurveSeamText.Enabled = c.isSeam;
                         }
                     }
@@ -5888,6 +5949,39 @@ namespace 繪圖
                 PDistList.RemoveAll(x => x.L1 == Right_Temp_Line || x.L2 == Right_Temp_Line);
             }
         }
+        private void 變更顏色ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(Right_Temp_Line != null)
+            {
+                colorDialog1.Color = Right_Temp_Line.co;
+                if(colorDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    Right_Temp_Line.co = colorDialog1.Color;
+                    Push_Undo_Data();
+                }
+                Refresh();
+            }
+            else if (Right_Temp_Curve != null)
+            {
+                colorDialog1.Color = Right_Temp_Curve.co;
+                if (colorDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    Right_Temp_Curve.co = colorDialog1.Color;
+                    Push_Undo_Data();
+                }
+                Refresh();
+            }
+            else if (Right_Temp_Arc != null)
+            {
+                colorDialog1.Color = Right_Temp_Arc.co;
+                if (colorDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    Right_Temp_Arc.co = colorDialog1.Color;
+                    Push_Undo_Data();
+                }
+                Refresh();
+            }
+        }
         private void ClearRighttemp()
         {
             Right_Temp_Point = null;
@@ -5981,6 +6075,89 @@ namespace 繪圖
             tabControl1.TabPages.RemoveAt(a);
             tabControl1.SelectedIndex = i == TabpagesList.Count-1 ? i - 1 : i;
         }
+        private void 建立分頁副本ToolStripMenuItem_Click(object sender, EventArgs ev)
+        {
+            TabpageData t = new TabpageData();
+            foreach (var p in PointsList)
+            {
+                GraphPoint gp = new GraphPoint(p.P.X, p.P.Y);
+                t.PointL.Add(gp);
+            }
+            foreach (var l in LineList)
+            {
+                int s = PointsList.FindIndex(x => x == l.StartPoint);
+                int e = PointsList.FindIndex(x => x == l.EndPoint);
+                t.PointL[s].Relative++;
+                t.PointL[e].Relative++;
+                GraphLine tl = new GraphLine(t.PointL[s], t.PointL[e]);
+                tl.Seam = l.Seam;
+                tl.SeamText = l.SeamText;
+                tl.isSeam = l.isSeam;
+                tl.co = l.co;
+                t.LineL.Add(tl);
+            }
+            foreach (var c in CurveList)
+            {
+                GraphCurve gc = new GraphCurve();
+                for (int i = 0; i < c.path.Count; i++)
+                {
+                    int index = PointsList.FindIndex(x => x == c.path[i]);
+                    gc.path.Add(t.PointL[index]);
+                    t.PointL[index].Relative++;
+                    gc.disFirst.Add(new PointF(c.disFirst[i].X, c.disFirst[i].Y));
+                    gc.disSecond.Add(new PointF(c.disSecond[i].X, c.disSecond[i].Y));
+                    gc.type.Add(c.type[i]);
+                }
+                gc.isSeam = c.isSeam;
+                gc.Seam = c.Seam;
+                gc.co = c.co;
+                t.CurveL.Add(gc);
+            }
+            foreach (var a in ArcList)
+            {
+                int s = PointsList.FindIndex(x => x == a.StartPoint);
+                int e = PointsList.FindIndex(x => x == a.EndPoint);
+                t.PointL[s].Relative++;
+                t.PointL[e].Relative++;
+                GraphArc ta = new GraphArc(t.PointL[s], t.PointL[e], a.getControlPoint());
+                ta.co = a.co;
+                t.ArcL.Add(ta);
+            }
+            for (int i = 0; i < PointsList.Count; i++)
+            {
+                if (PointsList[i].MarkL != null)
+                {
+                    t.PointL[i].MarkL = t.LineL[LineList.FindIndex(x => x == PointsList[i].MarkL)];
+                    t.PointL[i].part = PointsList[i].part;
+                }
+            }
+            foreach (var g in GroupList)
+            {
+                t.GroupL.Add(Group_Copy(g, t, TabpageDataList[tabControl1.SelectedIndex]));
+            }
+            foreach (var path in PathList)
+            {
+                t.PathL.Add(Group_Copy(path, t, TabpageDataList[tabControl1.SelectedIndex]));
+            }
+            t.width = (int)(pictureBox1.Width / ZoomSize);
+            t.height = (int)(pictureBox1.Height / ZoomSize);
+            t.TabpageName = "複製-" + TabpageDataList[tabControl1.SelectedIndex].TabpageName;
+
+            Undo_Data = new List<TabpageData>();
+
+            TabPage tp = new TabPage(t.TabpageName);
+            TabpageDataList.Add(t);
+            tp.AutoScroll = true;
+            tp.Controls.Add(pictureBox1);
+            TabpagesList.Insert(TabpagesList.Count - 1, tp);
+            tabControl1.TabPages.Insert(TabpagesList.Count - 2, tp);
+            tabControl1.SelectedIndex = TabpagesList.Count - 2;
+            TabpagesList[tabControl1.SelectedIndex].Controls.Add(pictureBox1);
+            TabpagesList[tabControl1.SelectedIndex].Controls.Add(pictureBox2);
+            Push_Undo_Data();
+            RefreshUndoCheck();
+            Invalidate();
+        }
         private void tabControl1_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
@@ -6013,16 +6190,18 @@ namespace 繪圖
                 {
                     if (SelectedGroup.L[0].Seam == 0)
                     {
-                        SelectedGroup.L[0].Seam = 5;
-                        LineSeamText.Text = "5";
+                        SelectedGroup.L[0].Seam = 0.5F * (LenthUnit == 0 ? 72 / 2.54F : 72);
+                        SelectedGroup.L[0].SeamText = 0.5F;
+                        LineSeamText.Text = "0.5";
                     }
                     else if (float.TryParse(LineSeamText.Text, out temp))
                     {
-                        SelectedGroup.L[0].Seam = temp;
+                        SelectedGroup.L[0].SeamText = temp;
+                        SelectedGroup.L[0].Seam = temp * (LenthUnit == 0 ? 72 / 2.54F : 72);
                     }
                     else
                     {
-                        LineSeamText.Text = "" + SelectedGroup.L[0].Seam;
+                        LineSeamText.Text = "" + SelectedGroup.L[0].SeamText;
                     }
                 }
             }
@@ -6035,8 +6214,9 @@ namespace 繪圖
                 float temp;
                 if (SelectedGroup.L[0].Seam == -1)
                 {
-                    SelectedGroup.L[0].Seam = 5;
-                    LineSeamText.Text = "5";
+                    SelectedGroup.L[0].Seam = 0.5F * (LenthUnit == 0 ? 72 / 2.54F : 72);
+                    SelectedGroup.L[0].SeamText = 0.5F;
+                    LineSeamText.Text = "0.5";
                     RefreshPorperty();
                     pictureBox1.Refresh();
                 }
@@ -6044,13 +6224,14 @@ namespace 繪圖
                 {
                     ;
                 }
-                else if(LineSeamText.Text.Last() == '.')
+                else if(LineSeamText.Text.Last() == '.' || (LineSeamText.Text.Last() == '0' && LineSeamText.Text.Contains(".")))
                 {
                     ;
                 }
                 else if (float.TryParse(LineSeamText.Text, out temp))
                 {
-                    SelectedGroup.L[0].Seam = temp;
+                    SelectedGroup.L[0].Seam = temp * (LenthUnit == 0 ? 72 / 2.54F : 72);
+                    SelectedGroup.L[0].SeamText = temp;
                     var pa = PathList.Find(x => x.L.Exists(y => y == SelectedGroup.L[0]));
                     if(pa != null)
                     {
@@ -6088,9 +6269,10 @@ namespace 繪圖
                 }
                 else
                 {
-                    LineSeamText.Text = "" + SelectedGroup.L[0].Seam;
-                    RefreshPorperty();
-                    pictureBox1.Refresh();
+                    //LineSeamText.Text = "" + SelectedGroup.L[0].SeamText;
+                    //RefreshPorperty();
+                    //pictureBox1.Refresh();
+                    ;
                 }
             }
         }
@@ -6109,16 +6291,18 @@ namespace 繪圖
                 {
                     if (SelectedGroup.C[0].Seam == 0)
                     {
-                        SelectedGroup.C[0].Seam = 5;
-                        CurveSeamText.Text = "5";
+                        SelectedGroup.C[0].Seam = 0.5F * (LenthUnit == 0 ? 72 / 2.54F : 72);
+                        SelectedGroup.C[0].SeamText = 0.5F;
+                        CurveSeamText.Text = "0.5";
                     }
                     else if (float.TryParse(CurveSeamText.Text, out temp))
                     {
-                        SelectedGroup.C[0].Seam = temp;
+                        SelectedGroup.C[0].SeamText = temp;
+                        SelectedGroup.C[0].Seam = temp * (LenthUnit == 0 ? 72 / 2.54F : 72);
                     }
                     else
                     {
-                        CurveSeamText.Text = "" + SelectedGroup.C[0].Seam;
+                        CurveSeamText.Text = "" + SelectedGroup.C[0].SeamText;
                     }
                 }
             }
@@ -6131,8 +6315,9 @@ namespace 繪圖
                 float temp;
                 if (SelectedGroup.C[0].Seam == -1)
                 {
-                    SelectedGroup.C[0].Seam = 5;
-                    CurveSeamText.Text = "5";
+                    SelectedGroup.C[0].SeamText = 0.5F;
+                    SelectedGroup.C[0].Seam = 0.5F * (LenthUnit == 0 ? 72 / 2.54F : 72);
+                    CurveSeamText.Text = "0.5";
                     RefreshPorperty();
                     pictureBox1.Refresh();
                 }
@@ -6140,21 +6325,23 @@ namespace 繪圖
                 {
                     ;
                 }
-                else if (CurveSeamText.Text.Last() == '.')
+                else if (CurveSeamText.Text.Last() == '.' || (CurveSeamText.Text.Last() == '0' && CurveSeamText.Text.Contains(".")))
                 {
                     ;
                 }
                 else if (float.TryParse(CurveSeamText.Text, out temp))
                 {
-                    SelectedGroup.C[0].Seam = temp;
+                    SelectedGroup.C[0].Seam = temp * (LenthUnit == 0 ? 72 / 2.54F : 72);
+                    SelectedGroup.C[0].SeamText = temp;
                     RefreshPorperty();
                     pictureBox1.Refresh();
                 }
                 else
                 {
-                    CurveSeamText.Text = "" + SelectedGroup.C[0].Seam;
-                    RefreshPorperty();
-                    pictureBox1.Refresh();
+                    //CurveSeamText.Text = "" + SelectedGroup.C[0].Seam / (LenthUnit == 0 ? 72 / 2.54F : 72);
+                    //RefreshPorperty();
+                    //pictureBox1.Refresh();
+                    ;
                 }
             }
         }
@@ -6163,6 +6350,7 @@ namespace 繪圖
         {
             e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+            e.Graphics.PageUnit = GraphicsUnit.Document;
             Print_Paint_Lines(e);
             Print_Paint_Curves(e);
             Print_Paint_Arcs(e);
@@ -6175,23 +6363,23 @@ namespace 繪圖
         {
             foreach (var line in LineList)
             {
-                var color = Color.Black;
+                var color = line.co;
                 var size = 1;
                 var pen = new Pen(color, size);
-                e.Graphics.DrawLine(pen, line.StartPoint.P.X * ZoomSize, line.StartPoint.P.Y * ZoomSize, line.EndPoint.P.X * ZoomSize, line.EndPoint.P.Y * ZoomSize);
+                e.Graphics.DrawLine(pen, line.StartPoint.P.X * 300 / 72, line.StartPoint.P.Y * 300 / 72, line.EndPoint.P.X * 300 / 72, line.EndPoint.P.Y * 300 / 72);
             }
         }
         private void Print_Paint_Curves(PrintPageEventArgs e)
         {
             foreach (var c in CurveList)
             {
-                var color = Color.Black;
+                var color = c.co;
                 var size = 1;
                 var pen = new Pen(color, size);
                 List<PointF> t = GraphCurveToBez(c);
                 for (int i = 0; i < t.Count; i++)
                 {
-                    t[i] = new PointF(t[i].X * ZoomSize, t[i].Y * ZoomSize);
+                    t[i] = new PointF(t[i].X * 300 / 72, t[i].Y * 300 / 72);
                 }
                 e.Graphics.DrawBeziers(pen, t.ToArray());
             }
@@ -6200,14 +6388,14 @@ namespace 繪圖
         {
             foreach (var a in ArcList)
             {
-                var color = Color.Black;
+                var color = a.co;
                 var size = 1;
                 var pen = new Pen(color, size);
                 var arr = a.to_cubic_bezier();
                 for (int i = 0; i < 4; i++)
                 {
-                    arr[i].X *= ZoomSize;
-                    arr[i].Y *= ZoomSize;
+                    arr[i].X *= 300 / 72;
+                    arr[i].Y *= 300 / 72;
                 }
                 e.Graphics.DrawBezier(pen, arr[0], arr[1], arr[2], arr[3]);
             }
@@ -6333,7 +6521,7 @@ namespace 繪圖
                 {
                     if (IsCurveP[i] == false)
                     {
-                        e.Graphics.DrawLine(pe, todrawl[i].X * ZoomSize, todrawl[i].Y * ZoomSize, todrawl[(i + 1) % todrawl.Count].X * ZoomSize, todrawl[(i + 1) % todrawl.Count].Y * ZoomSize);
+                        e.Graphics.DrawLine(pe, todrawl[i].X * 300 / 72, todrawl[i].Y * 300 / 72, todrawl[(i + 1) % todrawl.Count].X * 300 / 72, todrawl[(i + 1) % todrawl.Count].Y * 300 / 72);
                     }
                     else
                     {
@@ -6360,8 +6548,8 @@ namespace 繪圖
                                 c1 = new PointF(todrawl[i].X + path.C[cindex].disFirst[cpathindex].X * b1, todrawl[i].Y + path.C[cindex].disFirst[cpathindex].Y * b1);
                                 c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disSecond[cpathindex + pors].X * b2, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disSecond[cpathindex + pors].Y * b2);
                             }
-                            PointF[] cp = { new PointF(todrawl[i].X * ZoomSize , todrawl[i].Y* ZoomSize), new PointF(c1.X* ZoomSize, c1.Y* ZoomSize), new PointF(c2.X* ZoomSize, c2.Y* ZoomSize),
-                                            new PointF(todrawl[(i + 1) % todrawl.Count].X* ZoomSize, todrawl[(i + 1) % todrawl.Count].Y* ZoomSize) };
+                            PointF[] cp = { new PointF(todrawl[i].X * 300 / 72 , todrawl[i].Y* 300 / 72), new PointF(c1.X* 300 / 72, c1.Y* 300 / 72), new PointF(c2.X* 300 / 72, c2.Y* 300 / 72),
+                                            new PointF(todrawl[(i + 1) % todrawl.Count].X* 300 / 72, todrawl[(i + 1) % todrawl.Count].Y* 300 / 72) };
                             e.Graphics.DrawBeziers(pe, cp);
                             cpathindex += pors;
                             i++;
@@ -6378,7 +6566,7 @@ namespace 繪圖
             foreach (var s in TextList)
             {
                 var fo = new Font("新細明體", 12);
-                e.Graphics.DrawString(s.S, fo, Brushes.Black, s.P.X * ZoomSize, s.P.Y * ZoomSize);
+                e.Graphics.DrawString(s.S, fo, Brushes.Black, s.P.X * 300 / 72, s.P.Y * 300 / 72);
             }
         }
         private void Print_Paint_PathDist(PrintPageEventArgs e)
@@ -6404,24 +6592,26 @@ namespace 繪圖
                 }
                 else
                 {
-                    e.Graphics.DrawLine(pe_line, pt1.X * ZoomSize, pt1.Y * ZoomSize, pt2.X * ZoomSize, pt2.Y * ZoomSize);
+                    e.Graphics.DrawLine(pe_line, pt1.X * 300 / 72, pt1.Y * 300 / 72, pt2.X * 300 / 72, pt2.Y * 300 / 72);
                     PointF mid = new PointF((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2);
                     if (LenthUnit == 0)
                         dist /= 72/2.54F;
                     else
                         dist /= 72F;
-                    e.Graphics.DrawString(dist.ToString("F") + (LenthUnit == 0 ? " cm" : " inch"), fo, Brushes.Black, mid.X * ZoomSize, mid.Y * ZoomSize);
+                    e.Graphics.DrawString(dist.ToString("F") + (LenthUnit == 0 ? " cm" : " inch"), fo, Brushes.Black, mid.X * 300 / 72, mid.Y * 300 / 72);
                 }
             }
             foreach (var pd in pdl)
                 PDistList.Remove(pd);
         }
 
-
-        private void toolStripButton16_Click(object sender, EventArgs e)
+        private void 預覽列印ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             printPreviewDialog1.Document = printDocument1;
             printPreviewDialog1.ShowDialog();
         }
+
+        
+
     }
 } 

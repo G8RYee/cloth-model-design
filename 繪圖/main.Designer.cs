@@ -57,18 +57,19 @@
             this.toolStripButton8 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton9 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton10 = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButton16 = new System.Windows.Forms.ToolStripButton();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.CurveGroupBox = new System.Windows.Forms.GroupBox();
-            this.CurveSeamText = new System.Windows.Forms.TextBox();
-            this.CurveSeamCheck = new System.Windows.Forms.CheckBox();
             this.LineGroupBox = new System.Windows.Forms.GroupBox();
+            this.LineUnitLable = new System.Windows.Forms.Label();
             this.LineSeamText = new System.Windows.Forms.TextBox();
             this.LineSeamCheck = new System.Windows.Forms.CheckBox();
             this.LineLengthLable = new System.Windows.Forms.Label();
+            this.CurveGroupBox = new System.Windows.Forms.GroupBox();
+            this.CurveUnitLable = new System.Windows.Forms.Label();
+            this.CurveSeamText = new System.Windows.Forms.TextBox();
+            this.CurveSeamCheck = new System.Windows.Forms.CheckBox();
             this.PathGroupBox = new System.Windows.Forms.GroupBox();
             this.PathSeamText = new System.Windows.Forms.TextBox();
             this.PathSeamCheck = new System.Windows.Forms.CheckBox();
@@ -97,18 +98,22 @@
             this.直線等分ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.選取整個圖形ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.移除距離標示ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.變更顏色ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.printPreviewDialog1 = new System.Windows.Forms.PrintPreviewDialog();
             this.printDocument1 = new System.Drawing.Printing.PrintDocument();
+            this.colorDialog1 = new System.Windows.Forms.ColorDialog();
+            this.預覽列印ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.建立分頁副本ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            this.CurveGroupBox.SuspendLayout();
             this.LineGroupBox.SuspendLayout();
+            this.CurveGroupBox.SuspendLayout();
             this.PathGroupBox.SuspendLayout();
             this.contextMenuStrip2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -133,7 +138,8 @@
             this.新影像ToolStripMenuItem,
             this.toolStripMenuItem3,
             this.儲存影像ToolStripMenuItem,
-            this.調整大小ToolStripMenuItem});
+            this.調整大小ToolStripMenuItem,
+            this.預覽列印ToolStripMenuItem});
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(43, 20);
             this.toolStripMenuItem1.Text = "檔案";
@@ -188,8 +194,7 @@
             this.toolStripTextBox2,
             this.toolStripButton8,
             this.toolStripButton9,
-            this.toolStripButton10,
-            this.toolStripButton16});
+            this.toolStripButton10});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1047, 25);
@@ -406,16 +411,6 @@
             this.toolStripButton10.ToolTipText = "隱藏節點";
             this.toolStripButton10.Click += new System.EventHandler(this.toolStripButton10_Click);
             // 
-            // toolStripButton16
-            // 
-            this.toolStripButton16.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton16.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton16.Image")));
-            this.toolStripButton16.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton16.Name = "toolStripButton16";
-            this.toolStripButton16.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton16.Text = "toolStripButton16";
-            this.toolStripButton16.Click += new System.EventHandler(this.toolStripButton16_Click);
-            // 
             // openFileDialog1
             // 
             this.openFileDialog1.Filter = "專案檔|*.cds";
@@ -439,8 +434,8 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.BackColor = System.Drawing.Color.MintCream;
-            this.splitContainer1.Panel2.Controls.Add(this.CurveGroupBox);
             this.splitContainer1.Panel2.Controls.Add(this.LineGroupBox);
+            this.splitContainer1.Panel2.Controls.Add(this.CurveGroupBox);
             this.splitContainer1.Panel2.Controls.Add(this.PathGroupBox);
             this.splitContainer1.Panel2.SizeChanged += new System.EventHandler(this.splitContainer1_Panel2_SizeChanged);
             this.splitContainer1.Size = new System.Drawing.Size(873, 428);
@@ -459,49 +454,28 @@
             this.tabControl1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tabControl1_KeyUp);
             this.tabControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tabControl1_MouseDown);
             // 
-            // CurveGroupBox
-            // 
-            this.CurveGroupBox.Controls.Add(this.CurveSeamText);
-            this.CurveGroupBox.Controls.Add(this.CurveSeamCheck);
-            this.CurveGroupBox.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.CurveGroupBox.Location = new System.Drawing.Point(0, 91);
-            this.CurveGroupBox.Name = "CurveGroupBox";
-            this.CurveGroupBox.Size = new System.Drawing.Size(181, 428);
-            this.CurveGroupBox.TabIndex = 1;
-            this.CurveGroupBox.TabStop = false;
-            this.CurveGroupBox.Text = "曲線";
-            // 
-            // CurveSeamText
-            // 
-            this.CurveSeamText.Location = new System.Drawing.Point(75, 25);
-            this.CurveSeamText.Name = "CurveSeamText";
-            this.CurveSeamText.Size = new System.Drawing.Size(89, 27);
-            this.CurveSeamText.TabIndex = 4;
-            this.CurveSeamText.TextChanged += new System.EventHandler(this.CurveSeamText_TextChanged);
-            // 
-            // CurveSeamCheck
-            // 
-            this.CurveSeamCheck.AutoSize = true;
-            this.CurveSeamCheck.Location = new System.Drawing.Point(6, 27);
-            this.CurveSeamCheck.Name = "CurveSeamCheck";
-            this.CurveSeamCheck.Size = new System.Drawing.Size(63, 20);
-            this.CurveSeamCheck.TabIndex = 3;
-            this.CurveSeamCheck.Text = "縫份:";
-            this.CurveSeamCheck.UseVisualStyleBackColor = true;
-            this.CurveSeamCheck.Click += new System.EventHandler(this.CurveSeamCheck_Click);
-            // 
             // LineGroupBox
             // 
+            this.LineGroupBox.Controls.Add(this.LineUnitLable);
             this.LineGroupBox.Controls.Add(this.LineSeamText);
             this.LineGroupBox.Controls.Add(this.LineSeamCheck);
             this.LineGroupBox.Controls.Add(this.LineLengthLable);
             this.LineGroupBox.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.LineGroupBox.Location = new System.Drawing.Point(53, 49);
+            this.LineGroupBox.Location = new System.Drawing.Point(6, 24);
             this.LineGroupBox.Name = "LineGroupBox";
-            this.LineGroupBox.Size = new System.Drawing.Size(181, 428);
+            this.LineGroupBox.Size = new System.Drawing.Size(232, 428);
             this.LineGroupBox.TabIndex = 0;
             this.LineGroupBox.TabStop = false;
             this.LineGroupBox.Text = "線段";
+            // 
+            // LineUnitLable
+            // 
+            this.LineUnitLable.AutoSize = true;
+            this.LineUnitLable.Location = new System.Drawing.Point(180, 48);
+            this.LineUnitLable.Name = "LineUnitLable";
+            this.LineUnitLable.Size = new System.Drawing.Size(35, 16);
+            this.LineUnitLable.TabIndex = 6;
+            this.LineUnitLable.Text = "inch";
             // 
             // LineSeamText
             // 
@@ -531,6 +505,47 @@
             this.LineLengthLable.Size = new System.Drawing.Size(44, 16);
             this.LineLengthLable.TabIndex = 0;
             this.LineLengthLable.Text = "長度:";
+            // 
+            // CurveGroupBox
+            // 
+            this.CurveGroupBox.Controls.Add(this.CurveUnitLable);
+            this.CurveGroupBox.Controls.Add(this.CurveSeamText);
+            this.CurveGroupBox.Controls.Add(this.CurveSeamCheck);
+            this.CurveGroupBox.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.CurveGroupBox.Location = new System.Drawing.Point(0, 91);
+            this.CurveGroupBox.Name = "CurveGroupBox";
+            this.CurveGroupBox.Size = new System.Drawing.Size(181, 428);
+            this.CurveGroupBox.TabIndex = 1;
+            this.CurveGroupBox.TabStop = false;
+            this.CurveGroupBox.Text = "曲線";
+            // 
+            // CurveUnitLable
+            // 
+            this.CurveUnitLable.AutoSize = true;
+            this.CurveUnitLable.Location = new System.Drawing.Point(170, 31);
+            this.CurveUnitLable.Name = "CurveUnitLable";
+            this.CurveUnitLable.Size = new System.Drawing.Size(35, 16);
+            this.CurveUnitLable.TabIndex = 5;
+            this.CurveUnitLable.Text = "inch";
+            // 
+            // CurveSeamText
+            // 
+            this.CurveSeamText.Location = new System.Drawing.Point(75, 25);
+            this.CurveSeamText.Name = "CurveSeamText";
+            this.CurveSeamText.Size = new System.Drawing.Size(89, 27);
+            this.CurveSeamText.TabIndex = 4;
+            this.CurveSeamText.TextChanged += new System.EventHandler(this.CurveSeamText_TextChanged);
+            // 
+            // CurveSeamCheck
+            // 
+            this.CurveSeamCheck.AutoSize = true;
+            this.CurveSeamCheck.Location = new System.Drawing.Point(6, 27);
+            this.CurveSeamCheck.Name = "CurveSeamCheck";
+            this.CurveSeamCheck.Size = new System.Drawing.Size(63, 20);
+            this.CurveSeamCheck.TabIndex = 3;
+            this.CurveSeamCheck.Text = "縫份:";
+            this.CurveSeamCheck.UseVisualStyleBackColor = true;
+            this.CurveSeamCheck.Click += new System.EventHandler(this.CurveSeamCheck_Click);
             // 
             // PathGroupBox
             // 
@@ -565,9 +580,10 @@
             // 
             this.contextMenuStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.重新命名ToolStripMenuItem,
-            this.刪除ToolStripMenuItem});
+            this.刪除ToolStripMenuItem,
+            this.建立分頁副本ToolStripMenuItem});
             this.contextMenuStrip2.Name = "contextMenuStrip2";
-            this.contextMenuStrip2.Size = new System.Drawing.Size(123, 48);
+            this.contextMenuStrip2.Size = new System.Drawing.Size(147, 70);
             // 
             // 重新命名ToolStripMenuItem
             // 
@@ -639,9 +655,10 @@
             this.圖形ToolStripMenuItem,
             this.直線等分ToolStripMenuItem,
             this.選取整個圖形ToolStripMenuItem,
-            this.移除距離標示ToolStripMenuItem});
+            this.移除距離標示ToolStripMenuItem,
+            this.變更顏色ToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(147, 202);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(147, 224);
             this.contextMenuStrip1.Tag = "畫線用";
             // 
             // toolStripMenuItem2
@@ -763,6 +780,13 @@
             this.移除距離標示ToolStripMenuItem.Text = "移除距離標示";
             this.移除距離標示ToolStripMenuItem.Click += new System.EventHandler(this.移除距離標示ToolStripMenuItem_Click);
             // 
+            // 變更顏色ToolStripMenuItem
+            // 
+            this.變更顏色ToolStripMenuItem.Name = "變更顏色ToolStripMenuItem";
+            this.變更顏色ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.變更顏色ToolStripMenuItem.Text = "變更顏色";
+            this.變更顏色ToolStripMenuItem.Click += new System.EventHandler(this.變更顏色ToolStripMenuItem_Click);
+            // 
             // pictureBox2
             // 
             this.pictureBox2.Location = new System.Drawing.Point(879, 279);
@@ -798,6 +822,20 @@
             // 
             this.printDocument1.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(this.printDocument1_PrintPage);
             // 
+            // 預覽列印ToolStripMenuItem
+            // 
+            this.預覽列印ToolStripMenuItem.Name = "預覽列印ToolStripMenuItem";
+            this.預覽列印ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.預覽列印ToolStripMenuItem.Text = "預覽列印";
+            this.預覽列印ToolStripMenuItem.Click += new System.EventHandler(this.預覽列印ToolStripMenuItem_Click);
+            // 
+            // 建立分頁副本ToolStripMenuItem
+            // 
+            this.建立分頁副本ToolStripMenuItem.Name = "建立分頁副本ToolStripMenuItem";
+            this.建立分頁副本ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.建立分頁副本ToolStripMenuItem.Text = "建立複製分頁";
+            this.建立分頁副本ToolStripMenuItem.Click += new System.EventHandler(this.建立分頁副本ToolStripMenuItem_Click);
+            // 
             // main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -812,7 +850,7 @@
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "main";
-            this.Text = "Form1";
+            this.Text = "繪圖 v0818";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
             this.menuStrip1.ResumeLayout(false);
@@ -823,10 +861,10 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
-            this.CurveGroupBox.ResumeLayout(false);
-            this.CurveGroupBox.PerformLayout();
             this.LineGroupBox.ResumeLayout(false);
             this.LineGroupBox.PerformLayout();
+            this.CurveGroupBox.ResumeLayout(false);
+            this.CurveGroupBox.PerformLayout();
             this.PathGroupBox.ResumeLayout(false);
             this.PathGroupBox.PerformLayout();
             this.contextMenuStrip2.ResumeLayout(false);
@@ -912,7 +950,12 @@
         private System.Windows.Forms.ToolStripMenuItem 移除距離標示ToolStripMenuItem;
         private System.Windows.Forms.PrintPreviewDialog printPreviewDialog1;
         private System.Drawing.Printing.PrintDocument printDocument1;
-        private System.Windows.Forms.ToolStripButton toolStripButton16;
+        private System.Windows.Forms.ToolStripMenuItem 變更顏色ToolStripMenuItem;
+        private System.Windows.Forms.ColorDialog colorDialog1;
+        private System.Windows.Forms.Label CurveUnitLable;
+        private System.Windows.Forms.Label LineUnitLable;
+        private System.Windows.Forms.ToolStripMenuItem 預覽列印ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 建立分頁副本ToolStripMenuItem;
     }
 }
 
