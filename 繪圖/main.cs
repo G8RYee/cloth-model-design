@@ -1343,6 +1343,7 @@ namespace 繪圖
         {
             e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+            e.Graphics.Clear(Color.White);
 
             Paint_Net(e);
             Paint_Seam(e);
@@ -1793,10 +1794,8 @@ namespace 繪圖
                 List<PointF> poly_vert = new List<PointF>();
                 List<float> distList = new List<float>();
                 bool[] check = new bool[path.L.Count]; for (int i = 0; i < check.Count(); i++) check[i] = false;
-                List<bool> IsCurveP = new List<bool>();
                 GraphPoint p = path.P[0];
                 poly_vert.Add(p.P);
-                IsCurveP.Add(false);
                 do
                 {
                     List<GraphLine> l = new List<GraphLine>();
@@ -1821,55 +1820,33 @@ namespace 繪圖
                             p = l[0].StartPoint;
                         distList.Add(l[0].Seam);
                         poly_vert.Add(p.P);
-                        IsCurveP.Add(false);
                         check[path.L.FindIndex(x => x == l[0])] = true;
                     }
                     else if (c.Count > 0)
                     {
-                        IsCurveP[IsCurveP.Count - 1] = true;
+                        List<PointF> cPL = DevideCurve(c[0]);
                         if (c[0].path[0] == p)
                         {
                             p = c[0].path.Last();
-                            for (int i = 1; i < c[0].path.Count; i++)
+                            for (int i = 1; i < cPL.Count; i++)
                             {
-                                poly_vert.Add(c[0].path[i].P);
+                                poly_vert.Add(cPL[i]);
                                 distList.Add(c[0].Seam);
-                                IsCurveP.Add(true);
                             }
                         }
                         else
                         {
                             p = c[0].path[0];
-                            for (int i = c[0].path.Count - 2; i >= 0; i--)
+                            for (int i = cPL.Count - 2; i >= 0; i--)
                             {
-                                poly_vert.Add(c[0].path[i].P);
+                                poly_vert.Add(cPL[i]);
                                 distList.Add(c[0].Seam);
-                                IsCurveP.Add(true);
                             }
                         }
-                        IsCurveP[IsCurveP.Count - 1] = false;
                         check[path.C.FindIndex(x => x == c[0])] = true;
                     }
                 } while (p != path.P[0]);
                 poly_vert.RemoveAt(0);
-                IsCurveP.RemoveAt(0);
-                do
-                {
-                    if (IsCurveP[0])
-                    {
-                        if (path.C.Exists(x => x != null ? (x.path[0].P.X == poly_vert[0].X && x.path[0].P.Y == poly_vert[0].Y) : false))
-                            break;
-                        else if (path.C.Exists(x => x != null ? (x.path.Last().P.X == poly_vert[0].X && x.path.Last().P.Y == poly_vert[0].Y) : false))
-                            break;
-                        IsCurveP.Add(IsCurveP[0]);
-                        poly_vert.Add(poly_vert[0]);
-                        IsCurveP.RemoveAt(0);
-                        poly_vert.RemoveAt(0);
-                        continue;
-                    }
-                    else
-                        break;
-                } while (true);
                 List<PointF> forextend = new List<PointF>();
                 forextend.Add(poly_vert[0]);
                 float pre_m = (poly_vert[1].X - poly_vert[0].X) / (poly_vert[1].Y - poly_vert[0].X);
@@ -1886,56 +1863,18 @@ namespace 繪圖
                 List<PointF> todrawl = extend_polygon(forextend, distList);
                 for (int i = 0; i < todrawl.Count; i++)
                 {
-                    if (IsCurveP[i] == false)
-                    {
-                        e.Graphics.DrawLine(pe, todrawl[i].X * ZoomSize, todrawl[i].Y * ZoomSize, todrawl[(i + 1) % todrawl.Count].X * ZoomSize, todrawl[(i + 1) % todrawl.Count].Y * ZoomSize);
-                    }
-                    else
-                    {
-                        int pathcount = 0;
-                        int cindex = path.C.FindIndex(x => x != null ? (x.path.Exists(y => y.P.X == poly_vert[(i + 1) % todrawl.Count].X && y.P.Y == poly_vert[(i + 1) % todrawl.Count].Y))
-                                                                    && (x.path.Exists(y => y.P.X == poly_vert[(i) % todrawl.Count].X && y.P.Y == poly_vert[(i) % todrawl.Count].Y)) : false);
-                        bool tsfe = (path.C[cindex].path[0].P.X == poly_vert[i].X && path.C[cindex].path[0].P.Y == poly_vert[i].Y);
-                        int cpathindex = tsfe ? 0 : path.C[cindex].path.Count - 1;
-                        int pors = tsfe ? 1 : -1;
-                        while (IsCurveP[i % todrawl.Count] == true)
-                        {
-                            if (pathcount == path.C[cindex].path.Count - 1) break;
-                            PointF c1, c2;
-                            float b1 = (float)(Math.Sqrt(Math.Pow(todrawl[i].X, 2) + Math.Pow(todrawl[i].Y, 2)) / Math.Sqrt(Math.Pow(forextend[i].X, 2) + Math.Pow(forextend[i].Y, 2))),
-                                b2 = (float)(Math.Sqrt(Math.Pow(todrawl[(i + 1) % todrawl.Count].X, 2) + Math.Pow(todrawl[(i + 1) % todrawl.Count].Y, 2)) / 
-                                Math.Sqrt(Math.Pow(forextend[(i + 1) % todrawl.Count].X, 2) + Math.Pow(forextend[(i + 1) % todrawl.Count].Y, 2)));
-                            if (tsfe)
-                            {
-                                c1 = new PointF(todrawl[i].X + path.C[cindex].disSecond[cpathindex].X*b1, todrawl[i].Y + path.C[cindex].disSecond[cpathindex].Y*b1);
-                                c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disFirst[cpathindex + pors].X*b2, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disFirst[cpathindex + pors].Y*b2);
-                            }
-                            else
-                            {
-                                c1 = new PointF(todrawl[i].X + path.C[cindex].disFirst[cpathindex].X*b1, todrawl[i].Y + path.C[cindex].disFirst[cpathindex].Y*b1);
-                                c2 = new PointF(todrawl[(i + 1) % todrawl.Count].X + path.C[cindex].disSecond[cpathindex + pors].X*b2, todrawl[(i + 1) % todrawl.Count].Y + path.C[cindex].disSecond[cpathindex + pors].Y*b2);
-                            }
-                            PointF[] cp = { new PointF(todrawl[i].X * ZoomSize , todrawl[i].Y* ZoomSize), new PointF(c1.X* ZoomSize, c1.Y* ZoomSize), new PointF(c2.X* ZoomSize, c2.Y* ZoomSize),
-                                            new PointF(todrawl[(i + 1) % todrawl.Count].X* ZoomSize, todrawl[(i + 1) % todrawl.Count].Y* ZoomSize) };
-                            e.Graphics.DrawBeziers(pe, cp);
-                            cpathindex += pors;
-                            i++;
-                            pathcount++;
-                        }
-                        i--;
-                        
-                    }
+                    e.Graphics.DrawLine(pe, todrawl[i].X * ZoomSize, todrawl[i].Y * ZoomSize, todrawl[(i + 1) % todrawl.Count].X * ZoomSize, todrawl[(i + 1) % todrawl.Count].Y * ZoomSize);
                 }
             }
         }
-        private List<GraphLine> DevideCurve(GraphCurve c)
+        private List<PointF> DevideCurve(GraphCurve c)
         {
-            List<GraphLine> ans = new List<GraphLine>();
-            for (int i = 0; i < c.path.Count; i++)
+            List<PointF> ans = new List<PointF>();
+            for (int i = 0; i < c.path.Count - 1; i++)
             {
                 PointF p1 = c.path[i].P, p2 = c.path[i + 1].P;
-                PointF c1 = new PointF(p1.X + c.disSecond[i].X, p1.Y + c.disSecond[i].Y), c2 = new PointF(p2.X + c.disFirst[i + 1].X, p2.Y + c.disFirst[i].Y);
-                for (double j = 0; j < 1;)
+                PointF c1 = new PointF(p1.X + c.disSecond[i].X, p1.Y + c.disSecond[i].Y), c2 = new PointF(p2.X + c.disFirst[i + 1].X, p2.Y + c.disFirst[i + 1].Y);
+                for (double j = 0; j < 1;j+=0.04)
                 {
                     double x = p1.X * Math.Pow(1 - j, 3) +
                            3 * c1.X * Math.Pow(1 - j, 2) * j +
@@ -1945,20 +1884,10 @@ namespace 繪圖
                            3 * c1.Y * Math.Pow(1 - j, 2) * j +
                            3 * c2.Y * Math.Pow(j, 2) * (1 - j) +
                                p2.Y * Math.Pow(j, 3);
-                    GraphPoint Lp1 = new GraphPoint((float)x, (float)y);
-                    j += 0.4;
-                    x = p1.X * Math.Pow(1 - j, 3) +
-                    3 * c1.X * Math.Pow(1 - j, 2) * j +
-                    3 * c2.X * Math.Pow(j, 2) * (1 - j) +
-                        p2.X * Math.Pow(j, 3);
-                    y = p1.Y * Math.Pow(1 - j, 3) +
-                    3 * c1.Y * Math.Pow(1 - j, 2) * j +
-                    3 * c2.Y * Math.Pow(j, 2) * (1 - j) +
-                        p2.Y * Math.Pow(j, 3);
-                    GraphPoint Lp2 = new GraphPoint((float)x, (float)y);
-                    ans.Add(new GraphLine(Lp1, Lp2));
+                    ans.Add(new PointF((float)x, (float)y));
                 }
             }
+            ans.Add(c.path.Last().P);
             return ans;
         }
         private List<PointF> extend_polygon(List<PointF> pList, List<float> distList)

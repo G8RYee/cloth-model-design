@@ -36,6 +36,7 @@
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
             this.儲存影像ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.調整大小ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.預覽列印ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
@@ -76,6 +77,7 @@
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.重新命名ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.刪除ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.建立分頁副本ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -104,8 +106,6 @@
             this.printPreviewDialog1 = new System.Windows.Forms.PrintPreviewDialog();
             this.printDocument1 = new System.Drawing.Printing.PrintDocument();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
-            this.預覽列印ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.建立分頁副本ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -171,6 +171,13 @@
             this.調整大小ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
             this.調整大小ToolStripMenuItem.Text = "調整大小";
             this.調整大小ToolStripMenuItem.Click += new System.EventHandler(this.調整大小ToolStripMenuItem_Click);
+            // 
+            // 預覽列印ToolStripMenuItem
+            // 
+            this.預覽列印ToolStripMenuItem.Name = "預覽列印ToolStripMenuItem";
+            this.預覽列印ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+            this.預覽列印ToolStripMenuItem.Text = "預覽列印";
+            this.預覽列印ToolStripMenuItem.Click += new System.EventHandler(this.預覽列印ToolStripMenuItem_Click);
             // 
             // toolStrip1
             // 
@@ -588,16 +595,23 @@
             // 重新命名ToolStripMenuItem
             // 
             this.重新命名ToolStripMenuItem.Name = "重新命名ToolStripMenuItem";
-            this.重新命名ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+            this.重新命名ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.重新命名ToolStripMenuItem.Text = "重新命名";
             this.重新命名ToolStripMenuItem.Click += new System.EventHandler(this.重新命名ToolStripMenuItem_Click);
             // 
             // 刪除ToolStripMenuItem
             // 
             this.刪除ToolStripMenuItem.Name = "刪除ToolStripMenuItem";
-            this.刪除ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+            this.刪除ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.刪除ToolStripMenuItem.Text = "刪除";
             this.刪除ToolStripMenuItem.Click += new System.EventHandler(this.刪除ToolStripMenuItem_Click);
+            // 
+            // 建立分頁副本ToolStripMenuItem
+            // 
+            this.建立分頁副本ToolStripMenuItem.Name = "建立分頁副本ToolStripMenuItem";
+            this.建立分頁副本ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.建立分頁副本ToolStripMenuItem.Text = "建立複製分頁";
+            this.建立分頁副本ToolStripMenuItem.Click += new System.EventHandler(this.建立分頁副本ToolStripMenuItem_Click);
             // 
             // pictureBox1
             // 
@@ -822,20 +836,6 @@
             // 
             this.printDocument1.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(this.printDocument1_PrintPage);
             // 
-            // 預覽列印ToolStripMenuItem
-            // 
-            this.預覽列印ToolStripMenuItem.Name = "預覽列印ToolStripMenuItem";
-            this.預覽列印ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.預覽列印ToolStripMenuItem.Text = "預覽列印";
-            this.預覽列印ToolStripMenuItem.Click += new System.EventHandler(this.預覽列印ToolStripMenuItem_Click);
-            // 
-            // 建立分頁副本ToolStripMenuItem
-            // 
-            this.建立分頁副本ToolStripMenuItem.Name = "建立分頁副本ToolStripMenuItem";
-            this.建立分頁副本ToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.建立分頁副本ToolStripMenuItem.Text = "建立複製分頁";
-            this.建立分頁副本ToolStripMenuItem.Click += new System.EventHandler(this.建立分頁副本ToolStripMenuItem_Click);
-            // 
             // main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -850,7 +850,7 @@
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "main";
-            this.Text = "繪圖 v0818";
+            this.Text = "繪圖 v0823";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
             this.menuStrip1.ResumeLayout(false);
