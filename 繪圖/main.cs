@@ -2649,10 +2649,14 @@ namespace 繪圖
                 if(previous_point != null)
                 {
                     GraphArc a = new GraphArc(previous_point, t);
-                    ArcList.Add(a);
-                    Push_Undo_Data();
                     previous_point.Relative++;
                     t.Relative++;
+                    if (!PointsList.Exists(x => x == previous_point))
+                    {
+                        PointsList.Add(previous_point);
+                    }
+                    ArcList.Add(a);
+                    Push_Undo_Data();
                     previous_point = null;
                     is_Drowing = false;
                 }
@@ -4970,7 +4974,7 @@ namespace 繪圖
                         PorpertyList[2].Visible = false;
                         double x = (l.EndPoint.P.X - l.StartPoint.P.X) * (l.EndPoint.P.X - l.StartPoint.P.X);
                         double y = (l.EndPoint.P.Y - l.StartPoint.P.Y) * (l.EndPoint.P.Y - l.StartPoint.P.Y);
-                        LineLengthLable.Text = "長度:" + (Math.Sqrt(x + y) / (LenthUnit == 0 ? 10 : 25.4)).ToString("#0.00") + (LenthUnit == 0 ? " cm" : " inch");
+                        LineLengthLable.Text = "長度:" + (Math.Sqrt(x + y) / (LenthUnit == 0 ? 72 / 2.54F : 72)).ToString("#0.00") + (LenthUnit == 0 ? " cm" : " inch");
                         if (!PathList.Exists(a => a.L.Exists(b => b == l)))
                         {
                             LineSeamCheck.Enabled = false;
@@ -5525,6 +5529,7 @@ namespace 繪圖
             }
             else if(tabControl1.SelectedIndex >= 0 && TabpagesList.Count > 0 && TabpageDataList.Count > 0)
             {
+                TabpagesList[tabControl1.SelectedIndex].AutoScroll = true;
                 TabpagesList[tabControl1.SelectedIndex].Controls.Add(pictureBox1);
                 TabpagesList[tabControl1.SelectedIndex].Controls.Add(pictureBox2);
                 CurveList = TabpageDataList[tabControl1.SelectedIndex].CurveL;
@@ -6321,12 +6326,12 @@ namespace 繪圖
                 var size = 1;
                 var pen = new Pen(color, size);
                 var arr = a.to_cubic_bezier();
+                PointF[] bez = new PointF[4];
                 for (int i = 0; i < 4; i++)
                 {
-                    arr[i].X *= 300 / 72;
-                    arr[i].Y *= 300 / 72;
+                    bez[i] = new PointF(arr[i].X * 300 / 72, arr[i].Y * 300 / 72);
                 }
-                e.Graphics.DrawBezier(pen, arr[0], arr[1], arr[2], arr[3]);
+                e.Graphics.DrawBezier(pen, bez[0], bez[1], bez[2], bez[3]);
             }
         }
         private void Print_Paint_Seam(PrintPageEventArgs e)
