@@ -15,28 +15,40 @@ namespace 繪圖
         public Size()
         {
             InitializeComponent();
+            comboBox1.SelectedIndex = 0;
         }
         public int width, height;
-        public Size(int w, int h)
-        {
-            InitializeComponent();
-            width = w;
-            height = h;
-            textBox1.Text = h + "";
-            textBox2.Text = w + "";
-        }
         private void button1_Click(object sender, EventArgs e)
         {
-            int w, h;
-            if (int.TryParse(textBox1.Text, out h) && int.TryParse(textBox2.Text, out w))
+            if(comboBox1.SelectedIndex == 0)//A4
             {
-                width = w;
-                height = h;
+                width = (int)(8.3 * 72);
+                height = (int)(11.7 * 72);
                 DialogResult = DialogResult.OK;
             }
-            else
+            if (comboBox1.SelectedIndex == 1)//A3
             {
-                MessageBox.Show("請輸入整數", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                width = (int)(11.7 * 72);
+                height = (int)(16.5 * 72);
+                DialogResult = DialogResult.OK;
+            }
+            if (comboBox1.SelectedIndex == 2)//A2
+            {
+                width = (int)(16.5 * 72);
+                height = (int)(23.4 * 72);
+                DialogResult = DialogResult.OK;
+            }
+            if (comboBox1.SelectedIndex == 3)//A1
+            {
+                width = (int)(23.4 * 72);
+                height = (int)(33.1 * 72);
+                DialogResult = DialogResult.OK;
+            }
+            if (comboBox1.SelectedIndex == 4)//A0
+            {
+                width = (int)(33.1 * 72);
+                height = (int)(46.8 * 72);
+                DialogResult = DialogResult.OK;
             }
         }
     }

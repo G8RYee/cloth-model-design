@@ -27,7 +27,7 @@ namespace 繪圖
         {
             ans = textBox1.Text;
             if (ans.Contains(" ") || ans.Contains("\\") || ans.Contains("%") || ans.Contains("$") || ans.Contains("#") || ans.Contains("!") || ans.Contains("@") || ans.Contains("^") || ans.Contains("&") || ans.Contains("*"))
-                MessageBox.Show("含有非法字元", "訊息", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("請勿包含特殊字元", "訊息", MessageBoxButtons.OK, MessageBoxIcon.Error);
             else
                 DialogResult = DialogResult.OK;
         }

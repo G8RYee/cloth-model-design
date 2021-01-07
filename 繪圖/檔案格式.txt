@@ -1,16 +1,6 @@
-<ClothStandardSize>
-	[0] [1]......
-</ClothStandardSize>
-<Formula>
-计秖
-	name
-	element str
-</Formula>
+tabpagedatalist计秖
 <TabPageData>
 	夹肈 糴 蔼
-	<ClothGrainMark>
-		visible loc_type dir_type Loc.X Loc.Y Dir size
-	</ClothGrainMark>
 	翴计秖
 	<GraphPoint>
 		翴.X 翴.Y
@@ -47,7 +37,7 @@
 	</GraphGroup>
 	ゅ计秖
 	<GraphText>
-		X Y (T绢F) ず甧(猔種フ)
+		X Y ず甧(猔種フ)
 	</GraphText>
 	瓜计秖
 	<PathList>
@@ -64,26 +54,14 @@
 	</PathList>
 	<PathDistList>
 	PD计秖
-		Is_HV
-			T: pos
-			   thfv
-			F: anchor1
-			   anchor2
-		type
-		L/C/A 1
-		L/C/A 2
+		<PathDistance>
+			Is_HV
+				T: pos
+				   thfv
+				F: anchor1
+				   anchor2
+			type
+			L/C/A 1
+			L/C/A 2
 		</PathDistance>
 	</PathDistList>
-	S
-	翴计秖
-	<SupPoint>
-		翴.X 翴.Y
-	</SupPoint>
-	絬计秖
-	<SupLine>
-		start翴index end翴index 肅︹
-	</SupLine>
-	癸莱计秖
-	<FormulaToLine>
-		type mode anchor1X anchor1Y anchor2X anchor2Y fmlindex
-		L1/C1 L2/C2
